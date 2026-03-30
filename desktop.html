@@ -1,0 +1,3660 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1440">
+  <title>FarmIntel — Desktop 1440px</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    /* ── Reset ── */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+
+    *::-webkit-scrollbar {
+      display: none;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: var(--bg)
+    }
+
+    /* ── Tokens ── */
+    :root {
+      --bg: #F5F4F2;
+      --surface: #FFFFFF;
+      --surface2: #F9F8F7;
+      --b1: #E6E5E2;
+      /* default border */
+      --b2: #D4D3CF;
+      /* mid border */
+      --t1: #181816;
+      /* primary text */
+      --t2: #5A5955;
+      /* secondary text */
+      --t3: #9A9893;
+      /* muted text */
+      --t4: #C4C3BE;
+      /* very muted */
+
+      /* status — muted, never vibrant */
+      --c-crit: #9B2C2C;
+      --cb-crit: #FBF0F0;
+      --cc-crit: #F0C4C4;
+      --c-warn: #92520A;
+      --cb-warn: #FDF5EC;
+      --cc-warn: #F0D4B0;
+      --c-good: #276044;
+      --cb-good: #EFF6F2;
+      --cc-good: #B8DEC9;
+      --c-info: #1E4A8A;
+      --cb-info: #EEF3FB;
+      --cc-info: #B8CEF0;
+      --c-neutral: #5A5955;
+      --cb-neutral: #F2F1EF;
+
+      /* chart */
+      --chart1: #4A78B0;
+      /* steel blue — calm data line */
+      --chart2: #A8BAD4;
+      /* pale blue — secondary */
+      --chart-band: #EFEEEC;
+      /* optimal range band */
+
+      --r: 4px;
+      --r2: 6px;
+      font-family: 'DM Sans', system-ui, sans-serif;
+    }
+
+    /* ── Layout ── */
+    .shell {
+      display: flex;
+      width: 100%;
+      height: 100vh;
+      background: var(--bg)
+    }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      width: 220px;
+      flex-shrink: 0;
+      background: var(--surface);
+      border-right: 1px solid var(--b1);
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+
+    .sb-brand {
+      height: 52px;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 0 18px;
+      border-bottom: 1px solid var(--b1);
+    }
+
+    .sb-brand .wordmark {
+      font-size: 14px;
+      font-weight: 500;
+      letter-spacing: 0.01em;
+      color: var(--t1);
+      line-height: 1.2
+    }
+
+    .sb-brand .tagline {
+      font-size: 10.5px;
+      color: var(--t3);
+      margin-top: 1px;
+      letter-spacing: 0.01em;
+      line-height: 1.2
+    }
+
+    .sb-section {
+      padding: 16px 14px 4px;
+      font-size: 9.5px;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--t4)
+    }
+
+    .sb-item {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 7px 16px;
+      font-size: 12.5px;
+      color: var(--t2);
+      cursor: pointer;
+      border-left: 2px solid transparent;
+      transition: all 0.12s;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+
+    .sb-item:hover {
+      color: var(--t1);
+      background: var(--bg)
+    }
+
+    .sb-item.active {
+      color: var(--t1);
+      font-weight: 500;
+      background: var(--surface2);
+      border-left: 2px solid var(--t1);
+    }
+
+    .sb-icon {
+      width: 14px;
+      height: 14px;
+      flex-shrink: 0;
+      opacity: 0.65
+    }
+
+    .sb-item.active .sb-icon {
+      opacity: 1.0
+    }
+
+    .sb-divider {
+      height: 1px;
+      background: var(--b1);
+      margin: 10px 16px
+    }
+
+    .farm-card {
+      margin-top: auto;
+      margin-left: 12px;
+      margin-right: 12px;
+      margin-bottom: 16px;
+      padding: 11px 12px;
+      border: 1px solid var(--b1);
+      border-radius: var(--r2);
+      background: var(--surface2);
+    }
+
+    .fc-label {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--t2);
+      margin-bottom: 6px
+    }
+
+    .fc-name {
+      font-size: 12.5px;
+      font-weight: 500;
+      color: var(--t1);
+      margin-bottom: 3px
+    }
+
+    .fc-meta {
+      font-size: 11px;
+      color: var(--t3);
+      line-height: 1.6
+    }
+
+    .fc-status {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      margin-top: 7px;
+      font-size: 10.5px;
+      color: var(--c-warn)
+    }
+
+    .fc-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--c-warn);
+      animation: pulse 2.2s infinite
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        opacity: 1
+      }
+
+      50% {
+        opacity: 0.35
+      }
+    }
+
+    /* ── Main ── */
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0
+    }
+
+    /* ── Topbar ── */
+    .topbar {
+      height: 52px;
+      flex-shrink: 0;
+      background: var(--surface);
+      border-bottom: 1px solid var(--b1);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 28px;
+      position: relative;
+    }
+
+    .tb-title {
+      font-size: 13.5px;
+      font-weight: 500;
+      color: var(--t1)
+    }
+
+    .tb-crumb {
+      font-size: 11px;
+      color: var(--t2);
+      margin-top: 1px
+    }
+
+    .tb-right {
+      display: flex;
+      align-items: center;
+      gap: 14px
+    }
+
+    .tb-sync {
+      font-size: 11px;
+      color: var(--t2);
+      padding: 4px 10px;
+      border: 1px solid var(--b1);
+      border-radius: var(--r);
+      background: var(--bg);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .sync-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: #7AAB8E
+    }
+
+    .tb-bell {
+      position: relative;
+      width: 32px;
+      height: 32px;
+      border: 1px solid var(--b1);
+      border-radius: var(--r);
+      background: var(--surface);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .bell-badge {
+      position: absolute;
+      top: -5px;
+      right: -5px;
+      background: var(--c-crit);
+      color: #fff;
+      font-size: 8.5px;
+      font-weight: 500;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1.5px solid var(--surface);
+      font-family: 'DM Mono', monospace;
+    }
+
+    .tb-user {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--t2);
+      cursor: pointer;
+    }
+
+    .user-av {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--surface2);
+      border: 1px solid var(--b1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: 500;
+      color: var(--t2);
+      font-family: 'DM Mono', monospace;
+    }
+
+    /* ── Topbar Filters ── */
+    .tb-filters {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .filter-item {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .filter-label {
+      font-size: 8.5px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--t2);
+      font-weight: 500;
+      line-height: 1;
+    }
+
+    .filter-control {
+      font-family: inherit;
+      font-size: 11px;
+      color: var(--t1);
+      background: var(--surface2);
+      border: 1px solid var(--b1);
+      border-radius: 3px;
+      padding: 3px 8px;
+      outline: none;
+      min-width: 85px;
+      transition: border-color 0.15s;
+    }
+
+    .filter-control:hover {
+      border-color: var(--b2);
+    }
+
+    .filter-control:focus {
+      border-color: var(--t3);
+    }
+
+    select.filter-control {
+      cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8' viewBox='0 0 8 8' fill='none'%3E%3Cpath d='M1 3L4 6L7 3' stroke='%239A9893' stroke-width='1.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 8px center;
+      padding-right: 24px;
+    }
+
+    /* ── Map Overlay ── */
+    .map-overlay {
+      position: absolute;
+      top: 16px;
+      left: 18px;
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      pointer-events: none;
+    }
+
+    .map-info {
+      background: rgba(255, 255, 255, 0.92);
+      padding: 10px 14px;
+      border-radius: var(--r);
+      border: 1px solid var(--b1);
+      backdrop-filter: blur(8px);
+    }
+
+    .map-controls {
+      display: flex;
+      gap: 8px;
+      pointer-events: auto;
+    }
+
+    .map-btn {
+      background: white;
+      border: 1px solid var(--b1);
+      border-radius: 4px;
+      padding: 6px 12px;
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--t2);
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+
+    .map-btn:hover {
+      background: var(--bg);
+      border-color: var(--b2);
+    }
+
+    .map-btn.active {
+      background: var(--t1);
+      color: white;
+      border-color: var(--t1);
+    }
+
+    #ndvi-overlay {
+      pointer-events: none;
+      mix-blend-mode: multiply;
+      opacity: 0.5;
+      transition: opacity 0.4s;
+    }
+
+    /* ── Content scroll area ── */
+    .content {
+      flex: 1;
+      overflow: hidden;
+      padding: 16px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+
+    /* ── Metric cards ── */
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px
+    }
+
+    .mcard {
+      background: var(--surface);
+      border: 1px solid var(--b1);
+      border-radius: var(--r2);
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      overflow: hidden;
+    }
+
+    .mc-label {
+      font-size: 10.5px;
+      color: var(--t2);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 8px;
+    }
+
+    .mc-val {
+      font-size: 28px;
+      font-weight: 300;
+      letter-spacing: -0.03em;
+      line-height: 1;
+      color: var(--t1);
+      margin-bottom: 8px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .mc-val .unit {
+      font-size: 13px;
+      font-weight: 400;
+      color: var(--t3);
+      margin-left: 2px
+    }
+
+    .mc-footer {
+      display: flex;
+      align-items: center;
+      gap: 7px
+    }
+
+    .badge {
+      font-size: 10px;
+      font-weight: 500;
+      padding: 2px 7px;
+      border-radius: 3px;
+      letter-spacing: 0.02em;
+    }
+
+    .badge-crit {
+      background: var(--cb-crit);
+      color: var(--c-crit)
+    }
+
+    .badge-warn {
+      background: var(--cb-warn);
+      color: var(--c-warn)
+    }
+
+    .badge-good {
+      background: var(--cb-good);
+      color: var(--c-good)
+    }
+
+    .badge-info {
+      background: var(--cb-info);
+      color: var(--c-info)
+    }
+
+    .badge-neutral {
+      background: var(--cb-neutral);
+      color: var(--c-neutral)
+    }
+
+    .mc-trend {
+      font-size: 10.5px;
+      color: var(--t2)
+    }
+
+    .mc-conf {
+      font-size: 10px;
+      color: var(--t2);
+      margin-top: 4px
+    }
+
+    /* mcard top accent line */
+    .mcard.warn {
+      border-top: 2px solid var(--cc-warn)
+    }
+
+    .mcard.crit {
+      border-top: 2px solid var(--cc-crit)
+    }
+
+    .mcard.good {
+      border-top: 2px solid var(--cc-good)
+    }
+
+    .mcard.info {
+      border-top: 2px solid var(--cc-info)
+    }
+
+    /* ── Middle row ── */
+    /* ── Dashboard Grid Layout ── */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 12px;
+      flex: 1;
+      min-height: 0;
+    }
+
+    .col-left {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      min-width: 0;
+      flex: 1;
+      min-height: 0;
+    }
+
+    .col-right {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      min-height: 0;
+    }
+
+    .bottom-subgrid {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 12px;
+      min-height: 180px;
+    }
+
+    .mini-panel {
+      background: var(--surface);
+      border: 1px solid var(--b1);
+      border-radius: var(--r2);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+
+    .mp-title {
+      font-size: 9px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--t2);
+      margin-bottom: 14px;
+    }
+
+    .panel-full {
+      flex: 1;
+      background: var(--surface);
+      border: 1px solid var(--b1);
+      border-radius: var(--r2);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* ── Soil Parameter List ── */
+    .param-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding: 16px;
+      overflow-y: auto;
+    }
+
+    .param-list::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .param-list::-webkit-scrollbar-thumb {
+      background: var(--b2);
+      border-radius: 2px;
+    }
+
+    .param-group-label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      color: var(--t2);
+      margin-bottom: 12px;
+      margin-top: 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .param-group-label::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: var(--b1);
+    }
+
+    .param-row {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .param-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .param-name {
+      font-size: 11.5px;
+      color: var(--t2);
+    }
+
+    .param-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .param-val {
+      font-size: 11.5px;
+      font-weight: 500;
+      color: var(--t1);
+      font-family: 'DM Mono', monospace;
+    }
+
+    .param-bar-track {
+      height: 4px;
+      background: var(--bg);
+      border-radius: 2px;
+      border: 1px solid var(--b1);
+      overflow: hidden;
+    }
+
+    .param-bar-fill {
+      height: 100%;
+      border-radius: 2px;
+      transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* device rows */
+    .dev-list {
+      display: flex;
+      flex-direction: column;
+      gap: 7px
+    }
+
+    .dev-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 10px;
+      background: var(--bg);
+      border: 1px solid var(--b1);
+      border-radius: var(--r);
+    }
+
+    .dr-l {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+      min-width: 0
+    }
+
+    .dr-name {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--t1);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis
+    }
+
+    .dr-meta {
+      font-size: 10px;
+      color: var(--t2)
+    }
+
+    .dr-r {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 4px;
+      flex-shrink: 0
+    }
+
+    .bat {
+      width: 30px;
+      height: 4px;
+      background: var(--b1);
+      border-radius: 2px;
+      overflow: hidden
+    }
+
+    .bat-f {
+      height: 100%;
+      border-radius: 2px
+    }
+
+    /* weather */
+    .wx-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 0;
+      border-bottom: 1px solid var(--b1);
+    }
+
+    .wx-row:last-of-type {
+      border-bottom: none
+    }
+
+    .wx-day {
+      font-size: 11.5px;
+      color: var(--t2);
+      width: 30px
+    }
+
+    .wx-icon {
+      font-size: 14px;
+      width: 22px;
+      text-align: center
+    }
+
+    .wx-temp {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--t1)
+    }
+
+    .wx-rain {
+      font-size: 10.5px;
+      color: var(--t2)
+    }
+
+    .wx-note {
+      margin-top: 9px;
+      font-size: 10px;
+      color: var(--t2);
+      line-height: 1.5;
+      border-top: 1px solid var(--b1);
+      padding-top: 8px
+    }
+
+    /* advisory cards */
+    .adv-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px
+    }
+
+    .adv-card {
+      display: flex;
+      gap: 9px;
+      padding: 9px 10px;
+      border-radius: var(--r);
+      background: var(--bg);
+      border: 1px solid var(--b1);
+    }
+
+    .adv-card-tag {
+      font-size: 9.5px;
+      font-weight: 500;
+      padding: 2px 7px;
+      border-radius: 3px;
+      height: fit-content;
+      margin-top: 1px;
+      flex-shrink: 0;
+      letter-spacing: 0.02em
+    }
+
+    .adv-card-text {
+      font-size: 11.5px;
+      line-height: 1.55;
+      color: var(--t2)
+    }
+
+    .adv-card-text strong {
+      color: var(--t1);
+      font-weight: 500
+    }
+
+    /* ── Soil Health Card Grid ── */
+    .sh-container {
+      padding: 0 4px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      height: 100%;
+      overflow-y: auto;
+    }
+
+    .sh-container::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .sh-container::-webkit-scrollbar-thumb {
+      background: var(--b2);
+      border-radius: 2px;
+    }
+
+    .sh-header {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 900px;
+      padding: 12px 0 16px;
+      border-bottom: 1px solid var(--b1);
+      margin-bottom: 24px;
+      flex-shrink: 0;
+    }
+
+    .sh-title-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .sh-title {
+      font-size: 20px;
+      font-weight: 500;
+      color: var(--t1);
+      letter-spacing: -0.02em;
+    }
+
+    .sh-subtitle {
+      font-size: 11.5px;
+      color: var(--t2);
+    }
+
+    /* Spaced Grid instead of Fused Mosaic */
+    .sh-grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 12px;
+      margin-bottom: 32px;
+    }
+
+    /* Individual card (matches mcard) */
+    .sh-card {
+      background: var(--surface);
+      border: 1px solid var(--b1);
+      border-radius: var(--r2);
+      padding: 16px 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      min-height: 110px;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+
+    .sh-card:hover {
+      border-color: var(--b2);
+      transform: translateY(-2px);
+    }
+
+    .sh-card.span-2 {
+      grid-column: span 2;
+    }
+
+    .sh-card.span-3 {
+      grid-column: span 3;
+    }
+
+    .sh-card.span-4 {
+      grid-column: span 4;
+    }
+
+    /* Status Accents (matching mcard) */
+    .sh-card.crit {
+      border-top: 3px solid var(--cc-crit);
+    }
+
+    .sh-card.warn {
+      border-top: 3px solid var(--cc-warn);
+    }
+
+    .sh-card.good {
+      border-top: 3px solid var(--cc-good);
+    }
+
+    .sh-card.info {
+      border-top: 3px solid var(--cc-info);
+    }
+
+    /* Typography */
+    .sh-val {
+      font-size: 32px;
+      font-weight: 300;
+      letter-spacing: -0.03em;
+      line-height: 1;
+      color: var(--t1);
+      margin-bottom: 8px;
+    }
+
+    .sh-name {
+      font-size: 10.5px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--t2);
+      margin-top: 4px;
+    }
+
+    .sh-unit {
+      font-size: 14px;
+      font-weight: 400;
+      color: var(--t4);
+      margin-left: 2px;
+    }
+
+
+
+
+    /* Section Label for better visibility */
+    .sh-sec {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      color: var(--t2);
+      margin-bottom: 12px;
+      margin-top: 16px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .sh-sec::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: var(--b1);
+    }
+
+    /* Banner redesign to match Snapshot */
+    .sh-banner {
+      border: 1px solid var(--cc-warn);
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      background: var(--cb-warn);
+      margin-bottom: 24px;
+      border-radius: var(--r2);
+    }
+
+    .sh-banner-h {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--c-warn);
+      margin-bottom: 2px;
+    }
+
+    .sh-banner-p {
+      font-size: 11.5px;
+      color: var(--t2);
+      line-height: 1.5;
+    }
+
+    /* Color utilities for mosaic values */
+    .c-crit {
+      color: var(--c-crit) !important;
+    }
+
+    .c-warn {
+      color: var(--c-warn) !important;
+    }
+
+    .c-good {
+      color: var(--c-good) !important;
+    }
+
+    .c-info {
+      color: var(--c-info) !important;
+    }
+
+    /* ── Print Styles for PDF Export ── */
+    @media print {
+      body {
+        background: white !important;
+      }
+
+      .sidebar,
+      .topbar,
+      .sh-actions,
+      .map-overlay,
+      .tb-filters,
+      .sync-dot {
+        display: none !important;
+      }
+
+      .main {
+        padding: 0 !important;
+        margin: 0 !important;
+        width: 100% !important;
+      }
+
+      .content {
+        padding: 0 !important;
+      }
+
+      .view-content {
+        display: block !important;
+        padding: 20px !important;
+      }
+
+      .sh-container {
+        height: auto !important;
+        overflow: visible !important;
+      }
+
+      .sh-card {
+        break-inside: avoid;
+        border: 1px solid #ccc !important;
+        box-shadow: none !important;
+        transform: none !important;
+      }
+
+      .sh-header {
+        border-bottom: 2px solid #333 !important;
+        padding-bottom: 20px !important;
+        margin-bottom: 30px !important;
+      }
+
+      .sh-title {
+        color: #000 !important;
+        font-size: 24px !important;
+      }
+
+      .sh-sec::after {
+        background: #ccc !important;
+      }
+    }
+
+    /* ── Weather & Water Intelligence ── */
+    .ww-container {
+      padding: 0 4px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      height: 100%;
+      overflow-y: auto;
+    }
+
+    .ww-container::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .ww-container::-webkit-scrollbar-thumb {
+      background: var(--b2);
+      border-radius: 2px;
+    }
+
+    .ww-grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    /* Researcher Stat Cards */
+    .ww-stat-card {
+      background: var(--surface);
+      border: 1px solid var(--b1);
+      border-radius: var(--r2);
+      padding: 14px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      grid-column: span 3;
+    }
+
+    .ww-stat-label {
+      font-size: 9px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--t2);
+    }
+
+    .ww-stat-val {
+      font-size: 22px;
+      font-weight: 500;
+      color: var(--t1);
+      letter-spacing: -0.02em;
+    }
+
+    .ww-stat-meta {
+      font-size: 10px;
+      color: var(--t3);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Chart Cards */
+    .ww-chart-card {
+      background: var(--surface);
+      border: 1px solid var(--b1);
+      border-radius: var(--r2);
+      padding: 20px;
+      grid-column: span 6;
+      display: flex;
+      flex-direction: column;
+      min-height: 280px;
+    }
+
+    .ww-chart-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 16px;
+    }
+
+    .ww-chart-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--t1);
+      letter-spacing: -0.01em;
+    }
+
+    .ww-chart-sub {
+      font-size: 10.5px;
+      color: var(--t2);
+      margin-top: 2px;
+    }
+
+    .ww-chart-body {
+      flex: 1;
+      position: relative;
+      min-height: 0;
+    }
+
+    .ww-alert-card {
+      grid-column: span 12;
+      background: var(--cb-info);
+      border: 1px solid var(--cc-info);
+      border-radius: var(--r2);
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .ww-alert-icon {
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+
+    .ww-alert-content {
+      flex: 1;
+    }
+
+    .ww-alert-h {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--c-info);
+      margin-bottom: 2px;
+    }
+
+    .ww-alert-p {
+      font-size: 11.5px;
+      color: var(--t2);
+      line-height: 1.5;
+    }
+
+    /* ── Field History ── */
+    .hist-container {
+      padding: 0 4px 20px;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+
+    .hist-table-wrap {
+      background: var(--surface);
+      border: 1px solid var(--b1);
+      border-radius: var(--r2);
+      flex: 1;
+      overflow-y: auto;
+      margin-top: 12px;
+    }
+
+    .hist-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      text-align: left;
+    }
+
+    .hist-table th {
+      position: sticky;
+      top: 0;
+      background: var(--bg);
+      padding: 12px 20px;
+      font-weight: 600;
+      color: var(--t2);
+      text-transform: uppercase;
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      border-bottom: 1px solid var(--b1);
+      z-index: 10;
+    }
+
+    .hist-table td {
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--b1);
+      color: var(--t2);
+    }
+
+    .hist-table tr:hover {
+      background: rgba(0, 0, 0, 0.01);
+    }
+
+    /* ── Field Reports ── */
+    .rep-container {
+      padding: 0 4px 20px;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      gap: 16px;
+    }
+
+    .rep-ai-bar {
+      background: var(--surface);
+      border: 1px solid var(--b1);
+      border-left: 3px solid var(--c-info);
+      border-radius: var(--r2);
+      padding: 12px 18px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .rep-ai-msg {
+      font-size: 11px;
+      color: var(--t2);
+      line-height: 1.5;
+    }
+
+    .rep-stats-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+    }
+
+    .rep-stat-mini {
+      background: var(--surface);
+      border: 1px solid var(--b1);
+      border-radius: var(--r2);
+      padding: 12px 14px;
+    }
+
+    .rep-mini-label {
+      font-size: 8.5px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--t3);
+      margin-bottom: 4px;
+    }
+
+    .rep-mini-val {
+      font-size: 16px;
+      font-weight: 500;
+      color: var(--t1);
+    }
+
+    .rep-content-split {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 16px;
+      flex: 1;
+      min-height: 0;
+    }
+
+    .rep-generator {
+      background: var(--surface);
+      border: 1px solid var(--b1);
+      border-radius: var(--r2);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .rep-field-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .rep-field-label {
+      font-size: 9px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--t2);
+    }
+
+    .rep-control {
+      width: 100%;
+      padding: 7px 10px;
+      font-size: 11.5px;
+      border: 1px solid var(--b1);
+      border-radius: 4px;
+      background: var(--bg);
+      outline: none;
+      color: var(--t1);
+    }
+
+    .rep-check-list {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .rep-check-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11px;
+      color: var(--t2);
+    }
+
+    .rep-btn-gen {
+      margin-top: auto;
+      background: var(--t1);
+      color: white;
+      border: none;
+      padding: 10px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: opacity 0.2s;
+    }
+
+    .rep-btn-gen:hover {
+      opacity: 0.9;
+    }
+
+    .rep-archive {
+      background: var(--surface);
+      border: 1px solid var(--b1);
+      border-radius: var(--r2);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .rep-archive-header {
+      padding: 12px 20px;
+      border-bottom: 1px solid var(--b1);
+      background: var(--surface2);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .rep-search-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--surface);
+      border: 1px solid var(--b1);
+      border-radius: 4px;
+      padding: 4px 10px;
+      width: 240px;
+    }
+
+    .rep-search-input {
+      border: none;
+      background: none;
+      font-size: 11px;
+      color: var(--t1);
+      outline: none;
+      width: 100%;
+    }
+
+    /* ── Recommendations ── */
+    .rec-container {
+      padding: 0 4px 20px;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      gap: 16px;
+    }
+
+    .rec-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: 1fr 1fr;
+      gap: 16px;
+      flex: 1;
+      min-height: 0;
+    }
+
+    .rec-card {
+      background: var(--surface);
+      border: 1px solid var(--b1);
+      border-radius: var(--r2);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .rec-card-header {
+      padding: 12px 18px;
+      background: var(--surface2);
+      border-bottom: 1px solid var(--b1);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .rec-card-title {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--t2);
+    }
+
+    .rec-card-body {
+      padding: 16px;
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    /* Fertilizer Table */
+    .rec-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11.5px;
+    }
+
+    .rec-table th {
+      padding: 8px 12px;
+      text-align: left;
+      font-size: 9px;
+      text-transform: uppercase;
+      color: var(--t3);
+      border-bottom: 1px solid var(--b1);
+    }
+
+    .rec-table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--b1);
+      color: var(--t2);
+    }
+
+    /* Irrigation Timeline */
+    .rec-timeline {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .rec-time-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .rec-time-label {
+      width: 60px;
+      font-size: 10.5px;
+      color: var(--t3);
+      font-family: 'DM Mono', monospace;
+    }
+
+    .rec-time-bar-bg {
+      flex: 1;
+      height: 24px;
+      background: var(--bg);
+      border-radius: 3px;
+      position: relative;
+    }
+
+    .rec-time-bar {
+      position: absolute;
+      top: 0;
+      height: 100%;
+      border-radius: 3px;
+      display: flex;
+      align-items: center;
+      padding: 0 10px;
+      font-size: 10px;
+      font-weight: 500;
+    }
+
+    /* Stress Meters */
+    .rec-meter-group {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .rec-meter-item {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .rec-meter-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--t2);
+    }
+
+    .rec-meter-track {
+      height: 8px;
+      background: var(--bg);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .rec-meter-fill {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.3s;
+    }
+
+    /* Forecast */
+    .rec-forecast-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .rec-forecast-mini {
+      background: var(--bg);
+      padding: 10px;
+      border-radius: 4px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .rec-forecast-mini.full-width {
+      grid-column: span 2;
+    }
+
+    .rec-forecast-chart {
+      height: 40px;
+      width: 100%;
+    }
+
+    .rep-archive-table-wrap {
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    .rep-type-icon {
+      width: 24px;
+      height: 24px;
+      background: var(--bg);
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--t2);
+    }
+
+    /* Settings UI */
+    .st-container {
+      padding: 24px;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .st-section {
+      margin-bottom: 32px;
+      background: #fff;
+      border: 1px solid var(--b1);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .st-section-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--b1);
+      background: var(--bg);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .st-group {
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .st-field {
+      display: grid;
+      grid-template-columns: 200px 1fr;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .st-label {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--t1);
+    }
+
+    .st-hint {
+      font-size: 11px;
+      color: var(--t3);
+      margin-top: 4px;
+    }
+
+    .st-input,
+    .st-select {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid var(--b1);
+      border-radius: 4px;
+      font-size: 13px;
+      color: var(--t1);
+      background: var(--bg);
+      transition: all 0.2s;
+    }
+
+    .st-input:focus,
+    .st-select:focus {
+      outline: none;
+      border-color: var(--t1);
+      background: #fff;
+    }
+
+    /* Toggle Switch */
+    .st-toggle {
+      position: relative;
+      display: inline-block;
+      width: 36px;
+      height: 20px;
+    }
+
+    .st-toggle input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .st-slider {
+      position: absolute;
+      cursor: pointer;
+      inset: 0;
+      background-color: var(--b1);
+      transition: .3s;
+      border-radius: 20px;
+    }
+
+    .st-slider:before {
+      position: absolute;
+      content: "";
+      height: 14px;
+      width: 14px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: .3s;
+      border-radius: 50%;
+    }
+
+    input:checked+.st-slider {
+      background-color: var(--t1);
+    }
+
+    input:checked+.st-slider:before {
+      transform: translateX(16px);
+    }
+
+    .st-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      padding-top: 12px;
+    }
+
+    .btn-primary {
+      background: var(--t1);
+      color: #fff;
+      border: none;
+      padding: 8px 20px;
+      border-radius: 4px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+
+    .btn-primary:hover {
+      opacity: 0.9;
+    }
+
+    .btn-secondary {
+      background: none;
+      border: 1px solid var(--b1);
+      color: var(--t2);
+      padding: 8px 20px;
+      border-radius: 4px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    .rep-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .rep-action-btn {
+      background: none;
+      border: 1px solid var(--b1);
+      padding: 4px 8px;
+      border-radius: 3px;
+      font-size: 10px;
+      color: var(--t2);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .rep-action-btn:hover {
+      background: var(--bg);
+      border-color: var(--b2);
+    }
+
+    .rep-gen-progress {
+      display: none;
+      background: rgba(255, 255, 255, 0.9);
+      position: absolute;
+      inset: 0;
+      z-index: 20;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 12px;
+      backdrop-filter: blur(4px);
+    }
+
+    .hist-type-icon {
+      font-size: 14px;
+      margin-right: 12px;
+      display: inline-block;
+      width: 18px;
+      text-align: center;
+    }
+
+    .hist-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.02em;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="shell">
+
+    <!-- ── SIDEBAR ── -->
+    <aside class="sidebar">
+      <div class="sb-brand">
+        <div class="wordmark">FarmIntel</div>
+        <div class="tagline">Field Intelligence System</div>
+      </div>
+
+      <div class="sb-section">Monitor</div>
+      <div class="sb-item active" data-view="snapshot">
+        <svg class="sb-icon" viewBox="0 0 14 14" fill="none">
+          <rect x="1" y="1" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.2" />
+          <rect x="8" y="1" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.2" />
+          <rect x="1" y="8" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.2" />
+          <rect x="8" y="8" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.2" />
+        </svg>
+        Snapshot
+      </div>
+      <div class="sb-item" data-view="soil-health">
+        <svg class="sb-icon" viewBox="0 0 14 14" fill="none">
+          <path d="M7 1.5c-3 0-5.5 2.5-5.5 5.5s2.5 5.5 5.5 5.5 5.5-2.5 5.5-5.5" stroke="currentColor" stroke-width="1.2"
+            stroke-linecap="round" />
+          <path d="M7 4.5v3l2 1.2" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" />
+        </svg>
+        Soil Health
+      </div>
+      <div class="sb-item" data-view="weather-water">
+        <svg class="sb-icon" viewBox="0 0 14 14" fill="none">
+          <path d="M7 1.5C7 1.5 3 5 3 7.5a4 4 0 0 0 8 0C11 5 7 1.5 7 1.5Z" stroke="currentColor" stroke-width="1.2"
+            stroke-linejoin="round" />
+        </svg>
+        Weather & Water
+      </div>
+      <div class="sb-item" data-view="history">
+        <svg class="sb-icon" viewBox="0 0 14 14" fill="none">
+          <circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.2" />
+          <path d="M7 4.5v3l2 1.2" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" />
+        </svg>
+        History
+      </div>
+
+      <div class="sb-section">Analysis</div>
+      <div class="sb-item" data-view="reports">
+        <svg class="sb-icon" viewBox="0 0 14 14" fill="none">
+          <path d="M1 3.5h12M1 7h8M1 10.5h5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" />
+        </svg>
+        Reports
+      </div>
+      <div class="sb-item" data-view="recommendations">
+        <svg class="sb-icon" viewBox="0 0 14 14" fill="none">
+          <path d="M7 1.5l1.5 3h3l-2.5 2 1 3.5-3-2-3 2 1-3.5-2.5-2h3l1.5-3z" stroke="currentColor" stroke-width="1.2"
+            stroke-linejoin="round" />
+        </svg>
+        Recommendations
+      </div>
+      <div class="sb-item" data-view="alerts">
+        <svg class="sb-icon" viewBox="0 0 14 14" fill="none">
+          <path d="M7 1.5L1.5 11h11L7 1.5zM7 5v3M7 10h.01" stroke="currentColor" stroke-width="1.2"
+            stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+        Alerts
+      </div>
+
+      <div class="sb-divider"></div>
+      <div class="sb-item" data-view="settings">
+        <svg class="sb-icon" viewBox="0 0 14 14" fill="none">
+          <circle cx="7" cy="7" r="2" stroke="currentColor" stroke-width="1.2" />
+          <path d="M7 1.5v1.2M7 11.3v1.2M1.5 7h1.2M11.3 7h1.2M3.1 3.1l.9.9M10 10l.9.9M3.1 10.9l.9-.9M10 4l.9-.9"
+            stroke="currentColor" stroke-width="1.2" stroke-linecap="round" />
+        </svg>
+        Settings
+      </div>
+    </aside>
+
+    <!-- ── MAIN ── -->
+    <div class="main">
+
+      <!-- Topbar -->
+      <header class="topbar">
+        <div class="tb-left">
+          <div class="tb-title">Field Snapshot</div>
+          <div class="tb-crumb">Field Monitor / Sensor Array A</div>
+        </div>
+        <div class="tb-filters">
+          <div class="filter-item">
+            <div class="filter-label">Latitude</div>
+            <input type="text" class="filter-control" id="lat-input" value="17.9689° N" spellcheck="false">
+          </div>
+          <div class="filter-item">
+            <div class="filter-label">Longitude</div>
+            <input type="text" class="filter-control" id="lon-input" value="79.5941° E" spellcheck="false">
+          </div>
+          <div class="filter-item">
+            <div class="filter-label">Zone</div>
+            <select class="filter-control">
+              <option selected>Zone A</option>
+              <option>Zone B</option>
+              <option>Zone C</option>
+              <option>Zone D</option>
+            </select>
+          </div>
+          <div class="filter-item">
+            <div class="filter-label">Crop Type</div>
+            <select class="filter-control">
+              <option selected>Paddy (Rice)</option>
+              <option>Cotton</option>
+              <option>Sugarcane</option>
+              <option>Maize</option>
+              <option>Turmeric</option>
+              <option>Chilli</option>
+            </select>
+          </div>
+        </div>
+        <div class="tb-right">
+          <div class="tb-sync">
+            <div class="sync-dot"></div>
+            <span id="last-sync-time">Just now</span>
+          </div>
+          <div class="tb-bell">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <path
+                d="M7 1.5a4.5 4.5 0 0 0-4.5 4.5v3l-1 1v.75h11V10l-1-1V6A4.5 4.5 0 0 0 7 1.5ZM5.5 11.5a1.5 1.5 0 0 0 3 0"
+                stroke="#5A5955" stroke-width="1.2" stroke-linecap="round" />
+            </svg>
+            <div class="bell-badge">2</div>
+          </div>
+          <div class="tb-user">
+            <div class="user-av">MN</div>
+            M. Nikhil
+          </div>
+        </div>
+      </header>
+
+      <!-- Content -->
+      <div class="content">
+
+        <!-- View: Snapshot -->
+        <div id="view-snapshot" class="view-content active"
+          style="display: flex; flex-direction: column; gap: 12px; height: 100%;">
+          <!-- Metric cards -->
+          <div class="cards">
+            <div class="mcard good">
+              <div class="mc-label">Soil Health Index</div>
+              <div class="mc-val">84<span class="unit">/100</span></div>
+              <div class="mc-footer">
+                <span class="badge badge-good">Optimal</span>
+                <span class="mc-trend">▲ 2 pts from last scan</span>
+              </div>
+              <div class="mc-conf">Multi-factor analysis</div>
+            </div>
+            <div class="mcard warn">
+              <div class="mc-label">NPK Status</div>
+              <div class="mc-val">Fair</div>
+              <div class="mc-footer">
+                <span class="badge badge-warn">Warning</span>
+                <span class="mc-trend">Nitrogen is critically low</span>
+              </div>
+              <div class="mc-conf">Model fusion estimate</div>
+            </div>
+            <div class="mcard crit">
+              <div class="mc-label">Soil Moisture</div>
+              <div class="mc-val">18.3<span class="unit">%</span></div>
+              <div class="mc-footer">
+                <span class="badge badge-crit">Low</span>
+                <span class="mc-trend">Lower than 25% threshold</span>
+              </div>
+              <div class="mc-conf">Sensor A1 · Confidence 95%</div>
+            </div>
+            <div class="mcard info">
+              <div class="mc-label">Weather Risk</div>
+              <div class="mc-val">Low</div>
+              <div class="mc-footer">
+                <span class="badge badge-info">Safe</span>
+                <span class="mc-trend">No extreme events</span>
+              </div>
+              <div class="mc-conf">Localized forecast</div>
+            </div>
+          </div>
+
+          <!-- Dashboard Grid -->
+          <div class="dashboard-grid">
+
+            <!-- Left Column: Map & Health/Weather -->
+            <div class="col-left">
+              <!-- Field Map -->
+              <div class="panel-full" style="flex: 1.4; position:relative; min-height: 0;">
+                <div class="map-overlay">
+                  <div class="map-info">
+                    <div class="panel-title">Field Geospatial View</div>
+                    <div class="panel-sub">Localized Agricultural Overlay</div>
+                  </div>
+                  <div class="map-controls">
+                    <button class="map-btn active" id="btn-sat">Satellite</button>
+                    <button class="map-btn" id="btn-agri">Sentinel-2</button>
+                    <button class="map-btn" id="btn-ndvi">Field Health (NDVI)</button>
+                  </div>
+                </div>
+                <div id="map" style="width:100%; height:100%; background:var(--bg);"></div>
+              </div>
+
+              <!-- Sub-grid: Device & Weather -->
+              <div class="bottom-subgrid">
+                <!-- Device health -->
+                <div class="mini-panel">
+                  <div class="mp-title">Device health</div>
+                  <div class="dev-list">
+                    <div class="dev-row">
+                      <div class="dr-l">
+                        <div class="dr-name">Sensor Node A1</div>
+                        <div class="dr-meta">Field centre · Synced 4 min ago</div>
+                      </div>
+                      <div class="dr-r">
+                        <span class="badge badge-good">Online</span>
+                        <div class="bat">
+                          <div class="bat-f" style="width:78%;background:#6FA688"></div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="dev-row">
+                      <div class="dr-l">
+                        <div class="dr-name">Sensor Node A2</div>
+                        <div class="dr-meta">North boundary · Synced 11 min ago</div>
+                      </div>
+                      <div class="dr-r">
+                        <span class="badge badge-warn">Degraded</span>
+                        <div class="bat">
+                          <div class="bat-f" style="width:31%;background:#C8914E"></div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="dev-row">
+                      <div class="dr-l">
+                        <div class="dr-name">Sensor Node A3</div>
+                        <div class="dr-meta">South plot · Synced 2 min ago</div>
+                      </div>
+                      <div class="dr-r">
+                        <span class="badge badge-good">Online</span>
+                        <div class="bat">
+                          <div class="bat-f" style="width:91%;background:#6FA688"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Weather -->
+                <div class="mini-panel">
+                  <div class="mp-title">Weather outlook</div>
+                  <div id="wx-container">
+                    <div class="wx-row" id="wx-day-0">
+                      <span class="wx-day">Mon</span> <span class="wx-icon">☀</span> <span
+                        class="wx-temp">--°/--°</span> <span class="wx-rain">--%</span>
+                    </div>
+                    <div class="wx-row" id="wx-day-1">
+                      <span class="wx-day">Tue</span> <span class="wx-icon">⛅</span> <span
+                        class="wx-temp">--°/--°</span> <span class="wx-rain">--%</span>
+                    </div>
+                    <div class="wx-row" id="wx-day-2">
+                      <span class="wx-day">Wed</span> <span class="wx-icon">🌧</span> <span
+                        class="wx-temp">--°/--°</span> <span class="wx-rain">--%</span>
+                    </div>
+                    <div class="wx-row" id="wx-day-3">
+                      <span class="wx-day">Thu</span> <span class="wx-icon">⛅</span> <span
+                        class="wx-temp">--°/--°</span> <span class="wx-rain">--%</span>
+                    </div>
+                  </div>
+                  <div class="wx-note" id="wx-note">Fetching localized forecast...</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right Column: Soil Analysis -->
+            <div class="col-right">
+              <div class="panel-full">
+                <div style="padding:16px 18px; border-bottom:1px solid var(--b1);">
+                  <div class="panel-title">Soil Parameter Analysis</div>
+                  <div class="panel-sub">10 key factors · Localized dataset</div>
+                </div>
+                <div class="param-list" id="param-list">
+
+                  <div class="param-group-label">Primary Nutrients</div>
+                  <div class="param-row" data-param="N">
+                    <div class="param-header"><span class="param-name">Available Nitrogen (N)</span>
+                      <div class="param-meta"><span class="param-val">12 mg/kg</span><span class="badge"
+                          style="background:#FBF0F0;color:#9B2C2C">Crit</span></div>
+                    </div>
+                    <div class="param-bar-track">
+                      <div class="param-bar-fill" style="width:15%;background:#C8918E"></div>
+                    </div>
+                  </div>
+                  <div class="param-row" data-param="P">
+                    <div class="param-header"><span class="param-name">Available Phosphorus (P)</span>
+                      <div class="param-meta"><span class="param-val">34 mg/kg</span><span class="badge"
+                          style="background:#EEF3FB;color:#1E4A8A">Med</span></div>
+                    </div>
+                    <div class="param-bar-track">
+                      <div class="param-bar-fill" style="width:44%;background:#7A9DC4"></div>
+                    </div>
+                  </div>
+                  <div class="param-row" data-param="K">
+                    <div class="param-header"><span class="param-name">Available Potassium (K)</span>
+                      <div class="param-meta"><span class="param-val">67 mg/kg</span><span class="badge"
+                          style="background:#EFF6F2;color:#276044">Opt</span></div>
+                    </div>
+                    <div class="param-bar-track">
+                      <div class="param-bar-fill" style="width:70%;background:#6FA688"></div>
+                    </div>
+                  </div>
+
+                  <div class="param-group-label">Secondary & Micro</div>
+                  <div class="param-row" data-param="S">
+                    <div class="param-header"><span class="param-name">Available Sulphur (S)</span>
+                      <div class="param-meta"><span class="param-val">8.4 mg/kg</span></div>
+                    </div>
+                    <div class="param-bar-track">
+                      <div class="param-bar-fill" style="width:32%;background:#7A9DC4"></div>
+                    </div>
+                  </div>
+                  <div class="param-row" data-param="Zn">
+                    <div class="param-header"><span class="param-name">Zinc (Zn)</span>
+                      <div class="param-meta"><span class="param-val">0.45 mg/kg</span></div>
+                    </div>
+                    <div class="param-bar-track">
+                      <div class="param-bar-fill" style="width:28%;background:#C8918E"></div>
+                    </div>
+                  </div>
+                  <div class="param-row" data-param="B">
+                    <div class="param-header"><span class="param-name">Boron (B)</span>
+                      <div class="param-meta"><span class="param-val">0.62 mg/kg</span></div>
+                    </div>
+                    <div class="param-bar-track">
+                      <div class="param-bar-fill" style="width:55%;background:#7A9DC4"></div>
+                    </div>
+                  </div>
+
+                  <div class="param-group-label">Chemical & Physical</div>
+                  <div class="param-row" data-param="pH">
+                    <div class="param-header"><span class="param-name">Soil pH</span>
+                      <div class="param-meta"><span class="param-val">6.8 pH</span><span class="badge"
+                          style="background:#EFF6F2;color:#276044">Neutral</span></div>
+                    </div>
+                    <div class="param-bar-track">
+                      <div class="param-bar-fill" style="width:68%;background:#6FA688"></div>
+                    </div>
+                  </div>
+                  <div class="param-row" data-param="EC">
+                    <div class="param-header"><span class="param-name">Electrical Cond (EC)</span>
+                      <div class="param-meta"><span class="param-val">0.84 mS/cm</span></div>
+                    </div>
+                    <div class="param-bar-track">
+                      <div class="param-bar-fill" style="width:42%;background:#7A9DC4"></div>
+                    </div>
+                  </div>
+                  <div class="param-row" data-param="OC">
+                    <div class="param-header"><span class="param-name">Organic Carbon (OC)</span>
+                      <div class="param-meta"><span class="param-val">0.52 %</span></div>
+                    </div>
+                    <div class="param-bar-track">
+                      <div class="param-bar-fill" style="width:52%;background:#7A9DC4"></div>
+                    </div>
+                  </div>
+                  <div class="param-row" data-param="Moisture">
+                    <div class="param-header"><span class="param-name">Soil Moisture Content</span>
+                      <div class="param-meta"><span class="param-val">18.3 %</span><span class="badge"
+                          style="background:#FDF5EC;color:#92520A">Low</span></div>
+                    </div>
+                    <div class="param-bar-track">
+                      <div class="param-bar-fill" style="width:18.3%;background:#C8918E"></div>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div> <!-- End Snapshot -->
+
+        <!-- View: Soil Health -->
+        <div id="view-soil-health" class="view-content" style="display: none; height: 100%;">
+          <div class="sh-container">
+            <div class="sh-header">
+              <div class="sh-title-group">
+                <div class="sh-title">Soil Health Assessment Report</div>
+                <div class="sh-subtitle">Tue, Mar 24, 2026 • Field: Plot A • ID: FI-9928</div>
+              </div>
+              <div class="sh-actions">
+                <button class="map-btn" onclick="exportCSV()">Print Report (CSV)</button>
+                <button class="map-btn active" onclick="exportPDF()">Download PDF</button>
+              </div>
+            </div>
+
+            <!-- Nutrient Row (Primary + Secondary Side-by-Side) -->
+            <div style="display: flex; gap: 24px; margin-bottom: 8px;">
+              <div style="flex: 1;">
+                <div class="sh-sec">Primary Nutrients</div>
+                <div class="sh-grid" style="grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 0;">
+                  <div class="sh-card crit">
+                    <div class="sh-val">185<span class="sh-unit">kg/ha</span></div>
+                    <div class="sh-name">Available Nitrogen (N)</div>
+                  </div>
+                  <div class="sh-card good">
+                    <div class="sh-val">22.4<span class="sh-unit">kg/ha</span></div>
+                    <div class="sh-name">Available Phosphorus (P₂O₅)</div>
+                  </div>
+                  <div class="sh-card warn">
+                    <div class="sh-val">210<span class="sh-unit">kg/ha</span></div>
+                    <div class="sh-name">Available Potassium (K₂O)</div>
+                  </div>
+                </div>
+              </div>
+              <div style="flex: 1;">
+                <div class="sh-sec">Secondary Nutrients</div>
+                <div class="sh-grid" style="grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 0;">
+                  <div class="sh-card good">
+                    <div class="sh-val">12.5<span class="sh-unit">ppm</span></div>
+                    <div class="sh-name">Available Sulphur (S)</div>
+                  </div>
+                  <div class="sh-card good">
+                    <div class="sh-val">1850<span class="sh-unit">ppm</span></div>
+                    <div class="sh-name">Available Calcium (Ca)</div>
+                  </div>
+                  <div class="sh-card good">
+                    <div class="sh-val">245<span class="sh-unit">ppm</span></div>
+                    <div class="sh-name">Available Magnesium (Mg)</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Micronutrients (8 items: 7 + Index) -->
+            <div class="sh-sec">Micronutrients</div>
+            <div class="sh-grid">
+              <!-- Row 1 -->
+              <div class="sh-card span-3 good">
+                <div class="sh-val">0.85</div>
+                <div class="sh-name">Zinc (Zn)</div>
+              </div>
+              <div class="sh-card span-3 warn">
+                <div class="sh-val">4.2<span class="sh-unit">ppm</span></div>
+                <div class="sh-name">Iron (Fe)</div>
+              </div>
+              <div class="sh-card span-3 good">
+                <div class="sh-val">2.8</div>
+                <div class="sh-name">Manganese (Mn)</div>
+              </div>
+              <div class="sh-card span-3 good">
+                <div class="sh-val">0.45</div>
+                <div class="sh-name">Copper (Cu)</div>
+              </div>
+              <!-- Row 2 -->
+              <div class="sh-card span-3 crit">
+                <div class="sh-val">0.12</div>
+                <div class="sh-name">Boron (B)</div>
+              </div>
+              <div class="sh-card span-3 good">
+                <div class="sh-val">0.02</div>
+                <div class="sh-name">Molybdenum (Mo)</div>
+              </div>
+              <div class="sh-card span-3 good">
+                <div class="sh-val">85<span class="sh-unit">ppm</span></div>
+                <div class="sh-name">Chlorine (Cl)</div>
+              </div>
+              <div class="sh-card span-3 info">
+                <div class="sh-val">9.2<span class="sh-unit">/10</span></div>
+                <div class="sh-name">Micronutrient Health Index</div>
+              </div>
+            </div>
+
+            <!-- Physical & Chemical (3+3 Side-by-Side) -->
+            <div style="display: flex; gap: 24px; margin-bottom: 8px;">
+              <div style="flex: 1;">
+                <div class="sh-sec">Physical Parameters</div>
+                <div class="sh-grid" style="grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 0;">
+                  <div class="sh-card">
+                    <div class="sh-val">Clay Loam</div>
+                    <div class="sh-name">Soil Texture</div>
+                  </div>
+                  <div class="sh-card crit">
+                    <div class="sh-val">18.3<span class="sh-unit">%</span></div>
+                    <div class="sh-name">Soil Moisture Content</div>
+                  </div>
+                  <div class="sh-card good">
+                    <div class="sh-val">1.42<span class="sh-unit">g/cm³</span></div>
+                    <div class="sh-name">Bulk Density / Soil Structure</div>
+                  </div>
+                </div>
+              </div>
+              <div style="flex: 1;">
+                <div class="sh-sec">Chemical Parameters</div>
+                <div class="sh-grid" style="grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 0;">
+                  <div class="sh-card good">
+                    <div class="sh-val">6.8<span class="sh-unit">pH</span></div>
+                    <div class="sh-name">Soil pH</div>
+                  </div>
+                  <div class="sh-card good">
+                    <div class="sh-val">0.84<span class="sh-unit">mS/cm</span></div>
+                    <div class="sh-name">Electrical Conductivity (EC)</div>
+                  </div>
+                  <div class="sh-card warn">
+                    <div class="sh-val">0.52<span class="sh-unit">%</span></div>
+                    <div class="sh-name">Organic Carbon (OC)</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Additional Parameters (4) -->
+            <div class="sh-sec">Additional Insights</div>
+            <div class="sh-grid">
+              <div class="sh-card span-3 good">
+                <div class="sh-val">12.4</div>
+                <div class="sh-name">CEC – Cation Exchange Capacity</div>
+              </div>
+              <div class="sh-card span-3 good">
+                <div class="sh-val">Safe</div>
+                <div class="sh-name">Soil Salinity / Sodicity</div>
+              </div>
+              <div class="sh-card span-3 good">
+                <div class="sh-val">2.4<span class="sh-unit">%</span></div>
+                <div class="sh-name">ESP – Exchangeable Sodium Percentage</div>
+              </div>
+              <div class="sh-card span-3 info">
+                <div class="sh-val">None</div>
+                <div class="sh-name">Lime Requirement / Gypsum Requirement</div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- View: Weather & Water -->
+        <div id="view-weather-water" class="view-content" style="display: none; height: 100%;">
+          <div class="ww-container">
+            <div class="sh-header">
+              <div class="sh-title-group">
+                <div class="sh-title">Field Weather & Water Intelligence</div>
+                <div class="sh-subtitle">Researcher-grade microclimate and irrigation insights</div>
+              </div>
+            </div>
+
+            <!-- Recommendation Alert -->
+            <div class="ww-alert-card">
+              <div class="ww-alert-icon">💧</div>
+              <div class="ww-alert-content">
+                <div class="ww-alert-h">Strategic Irrigation Recommendation</div>
+                <div class="ww-alert-p" id="ww-advice">Analyzing soil moisture deficit and ET0...</div>
+              </div>
+            </div>
+
+            <!-- Researcher Top Stats -->
+            <div class="ww-grid">
+              <div class="ww-stat-card">
+                <div class="ww-stat-label">Growing Degree Days (GDD)</div>
+                <div class="ww-stat-val" id="ww-gdd">--</div>
+                <div class="ww-stat-meta">Base 10°C · Season cumulative</div>
+              </div>
+              <div class="ww-stat-card">
+                <div class="ww-stat-label">Vapor Pressure Deficit (VPD)</div>
+                <div class="ww-stat-val" id="ww-vpd">--<span class="sh-unit"> kPa</span></div>
+                <div class="ww-stat-meta" id="ww-vpd-status">Fetching stress level...</div>
+              </div>
+              <div class="ww-stat-card">
+                <div class="ww-stat-label">Field Capacity</div>
+                <div class="ww-stat-val" id="ww-fc">--<span class="sh-unit">%</span></div>
+                <div class="ww-stat-meta">Current saturation vs. max</div>
+              </div>
+              <div class="ww-stat-card">
+                <div class="ww-stat-label">14-Day Cumulative Rain</div>
+                <div class="ww-stat-val" id="ww-rain-sum">--<span class="sh-unit"> mm</span></div>
+                <div class="ww-stat-meta">Total precipitation volume</div>
+              </div>
+            </div>
+
+            <!-- Charts Grid -->
+            <div class="ww-grid">
+              <!-- Graph 1: Soil Moisture Trend -->
+              <div class="ww-chart-card">
+                <div class="ww-chart-header">
+                  <div>
+                    <div class="ww-chart-title">Soil Moisture Trend — 14-day</div>
+                    <div class="ww-chart-sub">Volumetric Water Content (%) with Optimal Zones</div>
+                  </div>
+                </div>
+                <div class="ww-chart-body">
+                  <canvas id="chart-moisture"></canvas>
+                </div>
+              </div>
+
+              <!-- Graph 2: Water Balance -->
+              <div class="ww-chart-card">
+                <div class="ww-chart-header">
+                  <div>
+                    <div class="ww-chart-title">Water Balance (Rain vs ET0)</div>
+                    <div class="ww-chart-sub">Daily Precipitation vs. Potential Evapotranspiration</div>
+                  </div>
+                </div>
+                <div class="ww-chart-body">
+                  <canvas id="chart-balance"></canvas>
+                </div>
+              </div>
+
+              <!-- Graph 3: Plant Stress (VPD) -->
+              <div class="ww-chart-card">
+                <div class="ww-chart-header">
+                  <div>
+                    <div class="ww-chart-title">Atmospheric Demand (VPD)</div>
+                    <div class="ww-chart-sub">Vapor Pressure Deficit — Higher values indicate transpiration stress</div>
+                  </div>
+                </div>
+                <div class="ww-chart-body">
+                  <canvas id="chart-vpd"></canvas>
+                </div>
+              </div>
+
+              <!-- Graph 4: Thermal Profile -->
+              <div class="ww-chart-card">
+                <div class="ww-chart-header">
+                  <div>
+                    <div class="ww-chart-title">Soil-Air Thermal Profile</div>
+                    <div class="ww-chart-sub">Direct correlation between Air and Root-zone temperature</div>
+                  </div>
+                </div>
+                <div class="ww-chart-body">
+                  <canvas id="chart-thermal"></canvas>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- View: History -->
+        <div id="view-history" class="view-content" style="display: none; height: 100%;">
+          <div class="hist-container">
+            <div class="sh-header">
+              <div class="sh-title-group">
+                <div class="sh-title">Field Operations & History</div>
+                <div class="sh-subtitle">Historical audit trail of sensor events and irrigation logs</div>
+              </div>
+            </div>
+
+            <!-- History Summary Cards -->
+            <div class="ww-grid" style="margin-top: 16px;">
+              <div class="ww-stat-card">
+                <div class="ww-stat-label">Total Irrigation (30d)</div>
+                <div class="ww-stat-val">422<span class="sh-unit"> mm</span></div>
+                <div class="ww-stat-meta">Cumulative water volume</div>
+              </div>
+              <div class="ww-stat-card">
+                <div class="ww-stat-label">Data Sync Reliability</div>
+                <div class="ww-stat-val">98.4<span class="sh-unit">%</span></div>
+                <div class="ww-stat-meta">Uptime across 3 nodes</div>
+              </div>
+              <div class="ww-stat-card">
+                <div class="ww-stat-label">Soil Health Delta</div>
+                <div class="ww-stat-val" style="color: var(--c-good);">+4.2%</div>
+                <div class="ww-stat-meta">Change from prev month</div>
+              </div>
+            </div>
+
+            <!-- Event Timeline Table -->
+            <div class="hist-table-wrap">
+              <table class="hist-table">
+                <thead>
+                  <tr>
+                    <th>Timestamp</th>
+                    <th>Event Type</th>
+                    <th>Value / Status</th>
+                    <th>Origin</th>
+                  </tr>
+                </thead>
+                <tbody id="hist-tbody">
+                  <!-- JS Populated -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- View: Reports -->
+        <div id="view-reports" class="view-content" style="display: none; height: 100%; position: relative;">
+          <div class="rep-container">
+            <div class="sh-header">
+              <div class="sh-title-group">
+                <div class="sh-title">Field Reports & Intelligence Archive</div>
+                <div class="sh-subtitle">Generate custom research audits and manage historical documentation</div>
+              </div>
+            </div>
+
+            <!-- Reports Stats Row -->
+            <div class="rep-stats-row">
+              <div class="rep-stat-mini">
+                <div class="rep-mini-label">Total Assets</div>
+                <div class="rep-mini-val" id="rep-stat-total">12</div>
+              </div>
+              <div class="rep-stat-mini">
+                <div class="rep-mini-label">Storage Used</div>
+                <div class="rep-mini-val">28.4<span style="font-size:10px; color:var(--t3); margin-left:2px;">MB</span>
+                </div>
+              </div>
+              <div class="rep-stat-mini">
+                <div class="rep-mini-label">Auto-Delivery</div>
+                <div class="rep-mini-val" style="color:var(--c-good); font-size:13px;">Active (Weekly)</div>
+              </div>
+              <div class="rep-stat-mini">
+                <div class="rep-mini-label">Last Audit Sync</div>
+                <div class="rep-mini-val" style="font-size:13px;">Just now</div>
+              </div>
+            </div>
+
+            <!-- AI Intelligence Bar -->
+            <div class="rep-ai-bar">
+              <div class="rep-type-icon">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                  <path d="M7 1L8.2 5.2L12.5 6.5L8.2 7.8L7 12L5.8 7.8L1.5 6.5L5.8 5.2L7 1Z" stroke="currentColor"
+                    stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+              </div>
+              <div class="rep-ai-msg">
+                <strong>Intelligence Insight:</strong> Field yield potential is currently 8% above seasonal average.
+                Recommended Report: <strong><i>Resource Efficiency Audit</i></strong> to optimize late-stage nitrogen
+                application.
+              </div>
+            </div>
+
+            <div class="rep-content-split">
+              <!-- Grid Left: Generator -->
+              <div class="rep-generator">
+                <div class="rep-field-group">
+                  <div class="rep-field-label">Target Zone / Field</div>
+                  <select class="rep-control">
+                    <option>All Zones (Global Audit)</option>
+                    <option>Zone A (Primary Plot)</option>
+                    <option>Zone B (Western Slope)</option>
+                    <option>Zone C (Experimental Area)</option>
+                  </select>
+                </div>
+
+                <div class="rep-field-group">
+                  <div class="rep-field-label">Report Type</div>
+                  <select class="rep-control">
+                    <option>Decision Support Audit (Full)</option>
+                    <option>Research Trial Comparison</option>
+                    <option>Regulatory (GAP) Compliance</option>
+                    <option>Weekly Operational Briefing</option>
+                  </select>
+                </div>
+
+                <div class="rep-field-group">
+                  <div class="rep-field-label">Included Datasets</div>
+                  <div class="rep-check-list">
+                    <label class="rep-check-item"><input type="checkbox" checked> Soil Health</label>
+                    <label class="rep-check-item"><input type="checkbox" checked> Water Balance</label>
+                    <label class="rep-check-item"><input type="checkbox" checked> Weather</label>
+                    <label class="rep-check-item"><input type="checkbox"> NDVI Maps</label>
+                    <label class="rep-check-item"><input type="checkbox"> Yield Log</label>
+                    <label class="rep-check-item"><input type="checkbox" checked> AI Insights</label>
+                  </div>
+                </div>
+
+                <button class="rep-btn-gen" onclick="simulateReportGen()">
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                    <path d="M7 1.5v5.5m0 0l-2.5-2m2.5 2l2.5-2M1.5 10.5h11" stroke="currentColor" stroke-width="1.2"
+                      stroke-linecap="round" stroke-linejoin="round" />
+                  </svg>
+                  Generate Research Report
+                </button>
+              </div>
+
+              <!-- Grid Right: Archive -->
+              <div class="rep-archive">
+                <div class="rep-archive-header">
+                  <div class="sh-title" style="font-size:11px; text-transform:uppercase; letter-spacing:0.1em;">Artifact
+                    Archive</div>
+                  <div class="rep-search-wrap">
+                    <svg width="12" height="12" viewBox="0 0 14 14" fill="none" style="color:var(--t3)">
+                      <circle cx="6" cy="6" r="4.5" stroke="currentColor" stroke-width="1.5" />
+                      <path d="M10 10l2.5 2.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+                    </svg>
+                    <input type="text" class="rep-search-input" placeholder="Search archive (e.g. 'Soil', 'March')...">
+                  </div>
+                </div>
+                <div class="rep-archive-table-wrap">
+                  <table class="hist-table">
+                    <thead>
+                      <tr>
+                        <th>Report Name</th>
+                        <th>Generated</th>
+                        <th>Type</th>
+                        <th>Downloads</th>
+                      </tr>
+                    </thead>
+                    <tbody id="rep-tbody">
+                      <!-- JS Populated -->
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <!-- Loading Overlay -->
+            <div id="rep-progress" class="rep-gen-progress">
+              <div class="sync-dot"
+                style="width:20px; height:20px; background:var(--t1); animation: pulse 1.2s infinite;"></div>
+              <div class="sh-title" style="font-size:13px; font-weight:500; letter-spacing:0.02em;">Synthesizing Field
+                Intelligence...</div>
+              <div class="sh-subtitle" id="rep-progress-step"
+                style="font-family:'DM Mono'; font-size:10px; text-transform:uppercase;">Correlating Soil & Weather
+                Datasets</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- View: Recommendations -->
+        <div id="view-recommendations" class="view-content" style="display: none; height: 100%;">
+          <div class="rec-container">
+            <div class="sh-header">
+              <div class="sh-title-group">
+                <div class="sh-title">Field Intelligence & Recommendations</div>
+                <div class="sh-subtitle">Actionable decision support based on predictive field modeling</div>
+              </div>
+            </div>
+
+            <!-- Global Action Bar -->
+            <div class="rep-ai-bar" style="border-left-color: var(--c-warn);">
+              <div class="rep-type-icon">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                  <path d="M7 1L8.2 5.2L12.5 6.5L8.2 7.8L7 12L5.8 7.8L1.5 6.5L5.8 5.2L7 1Z" stroke="currentColor"
+                    stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+              </div>
+              <div class="rep-ai-msg">
+                <strong>Priority Action:</strong> Nitrogen levels in <strong>Zone A</strong> are dropping below optimal
+                threshold (22%). Schedule Urea application (15kg/ha) within the next 48 hours to maintain yield
+                potential.
+              </div>
+            </div>
+
+            <div class="rec-grid">
+              <!-- Q1: Fertilizer Plan -->
+              <div class="rec-card">
+                <div class="rec-card-header">
+                  <div class="rec-card-title">Nutrient Management Plan</div>
+                  <div class="sh-subtitle" style="font-size:10px;">Recommended Dosage & Window</div>
+                </div>
+                <div class="rec-card-body">
+                  <table class="rec-table">
+                    <thead>
+                      <tr>
+                        <th>Nutrient</th>
+                        <th>Dosage</th>
+                        <th>Impact</th>
+                        <th>Priority</th>
+                        <th>Window</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td style="font-weight:500; color:var(--t1)">Urea (Nitrogen)</td>
+                        <td>15 kg/ha</td>
+                        <td><span style="color:var(--c-good)">+8% Yld</span></td>
+                        <td><span class="hist-badge" style="background:#FBF0F0;color:#9B2C2C">High</span></td>
+                        <td>Next 48h</td>
+                      </tr>
+                      <tr>
+                        <td style="font-weight:500; color:var(--t1)">Potash (K)</td>
+                        <td>8 kg/ha</td>
+                        <td><span style="color:var(--c-good)">+3% Yld</span></td>
+                        <td><span class="hist-badge" style="background:#FEF9EE;color:#94662C">Med</span></td>
+                        <td>5-7 Days</td>
+                      </tr>
+                      <tr>
+                        <td style="font-weight:500; color:var(--t1)">Zinc Sulfate</td>
+                        <td>2 kg/ha</td>
+                        <td><span style="color:var(--c-good)">+1% Yld</span></td>
+                        <td><span class="hist-badge" style="background:#EFF6F2;color:#276044">Low</span></td>
+                        <td>10 Days</td>
+                      </tr>
+                      <tr>
+                        <td style="font-weight:500; color:var(--t1)">Magnesium Sulfate</td>
+                        <td>5 kg/ha</td>
+                        <td><span style="color:var(--c-good)">+2.5% Yld</span></td>
+                        <td><span class="hist-badge" style="background:#FEF9EE;color:#94662C">Med</span></td>
+                        <td>14 Days</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <!-- Q2: Irrigation Schedule -->
+              <div class="rec-card">
+                <div class="rec-card-header">
+                  <div class="rec-card-title">48-Hour Irrigation Timeline</div>
+                  <div class="sh-subtitle" style="font-size:10px;">Automated Scheduler Sync</div>
+                </div>
+                <div class="rec-card-body">
+                  <div class="rec-timeline">
+                    <div class="rec-time-item">
+                      <div class="rec-time-label">Today 18:00</div>
+                      <div style="font-size:8px; width:40px; color:var(--t3); text-transform:uppercase;">Drip</div>
+                      <div style="font-size:9px; width:65px; color:var(--c-info);">Urea-N Inc.</div>
+                      <div class="rec-time-bar-bg">
+                        <div class="rec-time-bar" style="width: 45%; background: var(--cb-info); color: var(--c-info);">
+                          45 min Run <span style="font-size:8px; opacity:0.8; margin-left:8px;">(12.4k L)</span></div>
+                      </div>
+                    </div>
+                    <div class="rec-time-item">
+                      <div class="rec-time-label">Tomorrow 06:00</div>
+                      <div style="font-size:8px; width:40px; color:var(--t3); text-transform:uppercase;">Drip</div>
+                      <div style="font-size:9px; width:65px; color:var(--t3);">Water Only</div>
+                      <div class="rec-time-bar-bg">
+                        <div class="rec-time-bar" style="width: 30%; background: var(--cb-info); color: var(--c-info);">
+                          30 min Run <span style="font-size:8px; opacity:0.8; margin-left:8px;">(8.2k L)</span></div>
+                      </div>
+                    </div>
+                    <div class="rec-time-item">
+                      <div class="rec-time-label">Tomorrow 18:00</div>
+                      <div style="font-size:8px; width:40px; color:var(--t3); text-transform:uppercase;">Sprnk</div>
+                      <div style="font-size:9px; width:65px; color:var(--c-warn);">Potash-K Inc.</div>
+                      <div class="rec-time-bar-bg">
+                        <div class="rec-time-bar" style="width: 20%; background: var(--cb-neutral); color: var(--t2);">
+                          Standby <span style="font-size:8px; opacity:0.6; margin-left:8px;">(0.0 L)</span></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Q3: Risk & Stress Monitor -->
+              <div class="rec-card">
+                <div class="rec-card-header">
+                  <div class="rec-card-title">Risk & Stress Assessment</div>
+                  <div class="sh-subtitle" style="font-size:10px;">Real-time Physiological Alerts</div>
+                </div>
+                <div class="rec-card-body">
+                  <div class="rec-meter-group">
+                    <div class="rec-meter-item">
+                      <div class="rec-meter-header"><span>Heat Stress (VPD Trigger)</span><span>Moderate</span></div>
+                      <div class="rec-meter-track">
+                        <div class="rec-meter-fill" style="width: 62%; background: var(--c-warn);"></div>
+                      </div>
+                    </div>
+                    <div class="rec-meter-item">
+                      <div class="rec-meter-header"><span>Moisture Deficit</span><span>Optimal</span></div>
+                      <div class="rec-meter-track">
+                        <div class="rec-meter-fill" style="width: 24%; background: var(--c-good);"></div>
+                      </div>
+                    </div>
+                    <div class="rec-meter-item">
+                      <div class="rec-meter-header"><span>Oxygen Depletion (Root)</span><span>Low</span></div>
+                      <div class="rec-meter-track">
+                        <div class="rec-meter-fill" style="width: 12%; background: var(--c-good);"></div>
+                      </div>
+                    </div>
+                    <div class="rec-meter-item">
+                      <div class="rec-meter-header"><span>Pest/Disease Pressure</span><span>Low Risk</span></div>
+                      <div class="rec-meter-track">
+                        <div class="rec-meter-fill" style="width: 15%; background: var(--c-good);"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Q4: Predictive Forecast -->
+              <div class="rec-card">
+                <div class="rec-card-header">
+                  <div class="rec-card-title">14-Day Soil & Yield Forecast</div>
+                  <div class="sh-subtitle" style="font-size:10px;">Long-range Predictive Modeling</div>
+                </div>
+                <div class="rec-card-body">
+                  <div class="rec-forecast-grid">
+                    <div class="rec-forecast-mini">
+                      <div class="sh-subtitle" style="font-size:8.5px; font-weight:600;">Moisture Index</div>
+                      <div class="rec-forecast-chart"><canvas id="forecast-moisture"></canvas></div>
+                    </div>
+                    <div class="rec-forecast-mini">
+                      <div class="sh-subtitle" style="font-size:8.5px; font-weight:600;">Nitrogen Stability</div>
+                      <div class="rec-forecast-chart"><canvas id="forecast-nitrogen"></canvas></div>
+                    </div>
+                    <div class="rec-forecast-mini full-width">
+                      <div class="sh-subtitle" style="font-size:8.5px; font-weight:600;">Thermal Trend (Surface vs
+                        Depth)</div>
+                      <div class="rec-forecast-chart"><canvas id="forecast-thermal"></canvas></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- View: Settings -->
+        <div id="view-settings" class="view-content" style="display: none; height: 100%; overflow-y: auto;">
+          <div class="st-container">
+            <div class="sh-header" style="margin-bottom: 24px;">
+              <div class="sh-title-group">
+                <div class="sh-title">System Settings & Preferences</div>
+                <div class="sh-subtitle">Governance and operational configuration for FarmIntel nodes</div>
+              </div>
+            </div>
+
+            <!-- Section 1: Field Metadata -->
+            <div class="st-section">
+              <div class="st-section-header">
+                <div style="font-size:13px; font-weight:600; color:var(--t1)">Field & Crop Configuration</div>
+              </div>
+              <div class="st-group">
+                <div class="st-field">
+                  <div class="st-label">Field Designation</div>
+                  <input type="text" class="st-input" value="Sensor Array A - West Sector" spellcheck="false">
+                </div>
+                <div class="st-field">
+                  <div class="st-label">Primary Crop Type</div>
+                  <select class="st-select">
+                    <option>Maize (Zea mays)</option>
+                    <option>Soybean</option>
+                    <option>Wheat</option>
+                    <option>Cotton</option>
+                  </select>
+                </div>
+                <div class="st-field">
+                  <div class="st-label">Total Operational Area</div>
+                  <div style="display:flex; align-items:center; gap:10px;">
+                    <input type="number" class="st-input" value="42.5" style="width:100px;">
+                    <span style="font-size:12px; color:var(--t3)">Hectares</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Section 2: AI & Alert Thresholds -->
+            <div class="st-section">
+              <div class="st-section-header">
+                <div style="font-size:13px; font-weight:600; color:var(--t1)">Intelligence & Alert Thresholds</div>
+                <div class="sh-subtitle" style="font-size:10px;">Trigger points for AI recommendation engine</div>
+              </div>
+              <div class="st-group">
+                <div class="st-field">
+                  <div>
+                    <div class="st-label">Critical Moisture Floor</div>
+                    <div class="st-hint">Trigger automated irrigation when below this %</div>
+                  </div>
+                  <div style="display:flex; align-items:center; gap:12px;">
+                    <input type="range" min="5" max="40" value="18" style="flex:1;">
+                    <span style="font-size:12px; font-weight:600; width:30px;">18%</span>
+                  </div>
+                </div>
+                <div class="st-field">
+                  <div>
+                    <div class="st-label">Heat Stress Alert (VPD)</div>
+                    <div class="st-hint">Threshold for high atmospheric demand alerts</div>
+                  </div>
+                  <div style="display:flex; align-items:center; gap:12px;">
+                    <input type="range" min="0.5" max="3.0" step="0.1" value="1.5" style="flex:1;">
+                    <span style="font-size:12px; font-weight:600; width:30px;">1.5</span>
+                  </div>
+                </div>
+                <div class="st-field">
+                  <div class="st-label">Cloud-based Analytics Sync</div>
+                  <label class="st-toggle">
+                    <input type="checkbox" checked>
+                    <span class="st-slider"></span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <!-- Section 3: Connectivity & Unit Localization -->
+            <div class="st-section">
+              <div class="st-section-header">
+                <div style="font-size:13px; font-weight:600; color:var(--t1)">System Connectivity & Units</div>
+              </div>
+              <div class="st-group">
+                <div class="st-field">
+                  <div class="st-label">Data Refresh Interval</div>
+                  <select class="st-select">
+                    <option>15 Minutes (High Precision)</option>
+                    <option selected>30 Minutes (Balanced)</option>
+                    <option>60 Minutes (Eco Mode)</option>
+                  </select>
+                </div>
+                <div class="st-field">
+                  <div class="st-label">Measurement Standard</div>
+                  <div style="display:flex; gap:12px;">
+                    <button class="btn-secondary active"
+                      style="flex:1; border-color:var(--t1); background:#fff; color:var(--t1)">Metric</button>
+                    <button class="btn-secondary" style="flex:1">Imperial</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Footer Actions -->
+            <div class="st-footer">
+              <button class="btn-secondary">Reset to Factory Defaults</button>
+              <button class="btn-primary" onclick="window.saveSettings()">Save Configuration</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- View: Alerts -->
+        <div id="view-alerts" class="view-content" style="display: none; height: 100%; overflow-y: auto;">
+          <div class="st-container">
+            <div class="sh-header" style="margin-bottom: 24px;">
+              <div class="sh-title-group">
+                <div class="sh-title">Intelligence Alerts & Event Logs</div>
+                <div class="sh-subtitle">Real-time monitoring of critical field threshold triggers</div>
+              </div>
+            </div>
+
+            <div class="st-section">
+              <div class="st-section-header">
+                <div style="font-size:13px; font-weight:600; color:var(--t1)">Active Priority Alerts</div>
+              </div>
+              <div class="st-group" style="padding:0;">
+                <div
+                  style="border-bottom:1px solid var(--b1); padding:16px 20px; display:flex; gap:16px; align-items:flex-start;">
+                  <div style="width:8px; height:8px; border-radius:50%; background:var(--c-crit); margin-top:4px;">
+                  </div>
+                  <div style="flex:1;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                      <span style="font-size:13px; font-weight:600; color:var(--t1)">Critical Moisture Deficit</span>
+                      <span style="font-size:11px; font-family:'DM Mono'; color:var(--t2)">14:22 PM</span>
+                    </div>
+                    <div style="font-size:12px; color:var(--t2); line-height:1.4;">
+                      Soil Moisture at <strong>Sensor Node A1</strong> dropped below the 18% floor (Current: 16.4%).
+                      Automated irrigation standby engaged.
+                    </div>
+                  </div>
+                </div>
+
+                <div
+                  style="border-bottom:1px solid var(--b1); padding:16px 20px; display:flex; gap:16px; align-items:flex-start;">
+                  <div style="width:8px; height:8px; border-radius:50%; background:var(--c-warn); margin-top:4px;">
+                  </div>
+                  <div style="flex:1;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                      <span style="font-size:13px; font-weight:600; color:var(--t1)">Atmospheric Stress (VPD
+                        High)</span>
+                      <span style="font-size:11px; font-family:'DM Mono'; color:var(--t2)">11:05 AM</span>
+                    </div>
+                    <div style="font-size:12px; color:var(--t2); line-height:1.4;">
+                      Vapor Pressure Deficit exceeded 1.5 kPa (Current: 1.82).
+                      High transpiration stress detected in maize canopy.
+                    </div>
+                  </div>
+                </div>
+
+                <div style="padding:16px 20px; display:flex; gap:16px; align-items:flex-start;">
+                  <div style="width:8px; height:8px; border-radius:50%; background:var(--c-info); margin-top:4px;">
+                  </div>
+                  <div style="flex:1;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                      <span style="font-size:13px; font-weight:600; color:var(--t1)">Fertigation Cycle Complete</span>
+                      <span style="font-size:11px; font-family:'DM Mono'; color:var(--t2)">08:45 AM</span>
+                    </div>
+                    <div style="font-size:12px; color:var(--t2); line-height:1.4;">
+                      Scheduled Nitrogen (Urea) injection in <strong>Zone A</strong> successfully finalized.
+                      12.4k Liters delivered.
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div style="text-align:center; padding:20px;">
+              <button class="btn-secondary" style="font-size:11px; padding:6px 12px;">View Historical Audit
+                Logs</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Initial coordinates
+      let lat = 17.9689;
+      let lon = 79.5941;
+
+      // Initialize Map
+      const map = L.map('map', {
+        center: [lat, lon],
+        zoom: 16,
+        zoomControl: false,
+        attributionControl: false
+      });
+
+      // Map Layers
+      const satLayer = L.tileLayer('https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
+        subdomains: ['mt0', 'mt1', 'mt2', 'mt3']
+      }).addTo(map);
+
+      const agriLayer = L.tileLayer('https://{s}.google.com/vt/lyrs=p&x={x}&y={y}&z={z}', {
+        subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+        attribution: 'Google Terrain'
+      });
+
+      // Layer switching
+      document.getElementById('btn-sat').onclick = (e) => {
+        switchLayer('sat', e.target);
+      };
+      document.getElementById('btn-agri').onclick = (e) => {
+        switchLayer('agri', e.target);
+      };
+      document.getElementById('btn-ndvi').onclick = (e) => {
+        const btn = e.target;
+        btn.classList.toggle('active');
+        const container = map.getContainer();
+        if (btn.classList.contains('active')) {
+          container.style.filter = 'hue-rotate(90deg) contrast(1.2) saturate(1.5)';
+        } else {
+          container.style.filter = 'none';
+        }
+      };
+
+      function switchLayer(type, btn) {
+        document.querySelectorAll('.map-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        // Robust layer removal
+        map.removeLayer(satLayer);
+        map.removeLayer(agriLayer);
+
+        if (type === 'sat') {
+          satLayer.addTo(map);
+        } else {
+          agriLayer.addTo(map);
+        }
+
+        // Ensure marker stays on top
+        if (marker) marker.bringToFront();
+      }
+
+      // Add a draggable marker
+      const marker = L.marker([lat, lon], { draggable: true }).addTo(map);
+
+      // Auto-locate user on load
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition((pos) => {
+          const uLat = pos.coords.latitude;
+          const uLon = pos.coords.longitude;
+          updateMap(uLat, uLon);
+          updateInputs(uLat, uLon);
+          refreshSoilData();
+        }, () => {
+          console.warn("Auto-location failed or denied. Showing default.");
+        });
+      }
+
+      const latInput = document.getElementById('lat-input');
+      const lonInput = document.getElementById('lon-input');
+
+      function updateInputs(newLat, newLon) {
+        latInput.value = newLat.toFixed(6) + '° N';
+        lonInput.value = newLon.toFixed(6) + '° E';
+      }
+
+      function updateMap(newLat, newLon) {
+        marker.setLatLng([newLat, newLon]);
+        map.setView([newLat, newLon]);
+        refreshWeatherData(newLat, newLon); // Fetch real weather for this spot
+        resetSyncTimer(); // Update sync text
+      }
+
+      const syncText = document.getElementById('last-sync-time');
+      let lastSync = new Date();
+
+      function resetSyncTimer() {
+        lastSync = new Date();
+        syncText.innerText = 'Just now';
+      }
+
+      // Update sync timer every 30 seconds
+      setInterval(() => {
+        const mins = Math.floor((new Date() - lastSync) / 60000);
+        if (mins === 0) syncText.innerText = 'Just now';
+        else if (mins === 1) syncText.innerText = 'Updated 1 min ago';
+        else syncText.innerText = `Updated ${mins} min ago`;
+      }, 30000);
+
+      async function refreshWeatherData(lat, lon) {
+        try {
+          const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max,weathercode&timezone=auto`;
+          const resp = await fetch(url);
+          const data = await resp.json();
+
+          if (data && data.daily) {
+            const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            const now = new Date();
+
+            for (let i = 0; i < 4; i++) {
+              const el = document.getElementById(`wx-day-${i}`);
+              if (!el) continue;
+
+              const date = new Date(data.daily.time[i]);
+              const dayLabel = days[date.getDay()];
+              const maxT = Math.round(data.daily.temperature_2m_max[i]);
+              const minT = Math.round(data.daily.temperature_2m_min[i]);
+              const prob = data.daily.precipitation_probability_max[i];
+              const code = data.daily.weathercode[i];
+
+              // Determine icon
+              let icon = '☀';
+              if (code > 0 && code < 45) icon = '⛅';
+              else if (code >= 45 && code < 61) icon = '☁';
+              else if (code >= 61) icon = '🌧';
+
+              el.querySelector('.wx-day').innerText = dayLabel;
+              el.querySelector('.wx-icon').innerText = icon;
+              el.querySelector('.wx-temp').innerText = `${maxT}°/${minT}°`;
+              el.querySelector('.wx-rain').innerText = `${prob}%`;
+            }
+
+            const nextRain = data.daily.precipitation_probability_max.findIndex(p => p > 50);
+            const noteEl = document.getElementById('wx-note');
+            if (nextRain !== -1) {
+              const rainDay = days[new Date(data.daily.time[nextRain]).getDay()];
+              noteEl.innerText = `High rain chance on ${rainDay} — adjust irrigation accordingly.`;
+            } else {
+              noteEl.innerText = "Dry spell expected — keep moisture checked.";
+            }
+          }
+        } catch (e) {
+          console.error("Weather fetch failed:", e);
+        }
+      }
+
+      function refreshSoilData() {
+        const params = document.querySelectorAll('.param-row');
+        params.forEach(row => {
+          const bar = row.querySelector('.param-bar-fill');
+
+          // Simulate localized variance
+          const randomWidth = Math.floor(Math.random() * 80) + 10;
+          bar.style.width = randomWidth + '%';
+
+          // Apply color to ALL 10 bars based on value
+          if (randomWidth < 30) bar.style.background = '#C8918E'; // Low/Critical
+          else if (randomWidth < 65) bar.style.background = '#7A9DC4'; // Medium/Fair
+          else bar.style.background = '#6FA688'; // High/Optimal
+        });
+      }
+
+      // Sync from marker drag
+      marker.on('dragend', function (e) {
+        const position = marker.getLatLng();
+        updateInputs(position.lat, position.lng);
+        refreshSoilData();
+      });
+
+      // Sync from map click
+      map.on('click', function (e) {
+        updateMap(e.latlng.lat, e.latlng.lng);
+        updateInputs(e.latlng.lat, e.latlng.lng);
+        refreshSoilData();
+      });
+
+      // Navigation Logic
+      const sbItems = document.querySelectorAll('.sb-item');
+      const views = document.querySelectorAll('.view-content');
+      const tbTitle = document.querySelector('.tb-title');
+
+      sbItems.forEach(item => {
+        item.addEventListener('click', () => {
+          const viewId = item.dataset.view;
+          if (!viewId) return;
+
+          // Update sidebar active state
+          sbItems.forEach(i => i.classList.remove('active'));
+          item.classList.add('active');
+
+          // Switch views
+          views.forEach(v => {
+            if (v.id === `view-${viewId}`) {
+              v.style.display = (viewId === 'snapshot') ? 'flex' : 'block';
+              v.classList.add('active');
+            } else {
+              v.style.display = 'none';
+              v.classList.remove('active');
+            }
+          });
+
+          // Update topbar title
+          tbTitle.innerText = `Field ${item.innerText}`;
+
+          // Re-render map if returning to snapshot
+          if (viewId === 'snapshot') {
+            setTimeout(() => map.invalidateSize(), 100);
+          }
+          // Refresh Weather & Water data
+          if (viewId === 'weather-water') {
+            refreshWWData(lat, lon);
+          }
+          // Refresh History
+          if (viewId === 'history') {
+            refreshHistoryData();
+          }
+          // Refresh Reports
+          if (viewId === 'reports') {
+            refreshReportsData();
+          }
+          // Refresh Recommendations
+          if (viewId === 'recommendations') {
+            refreshRecsData();
+          }
+        });
+      });
+
+      // ── Reports Intelligence Logic ──
+      let mockReports = [
+        { name: 'March_Soil_Health_Audit.pdf', date: '22 Mar, 10:30', type: 'Full Audit', size: '2.4 MB' },
+        { name: 'Weekly_Operational_Briefing.csv', date: '19 Mar, 08:15', type: 'Briefing', size: '128 KB' },
+        { name: 'GAP_Compliance_Cert_Q1.pdf', date: '15 Mar, 14:45', type: 'Compliance', size: '1.8 MB' },
+        { name: 'Nitrogen_Trial_Comparison_Z-A.pdf', date: '10 Mar, 09:00', type: 'Research', size: '3.1 MB' },
+        { name: 'February_Water_Balance_Review.pdf', date: '28 Feb, 16:20', type: 'Full Audit', size: '2.1 MB' },
+        { name: 'Zone_B_Moisture_Stress_Trial.pdf', date: '22 Feb, 11:10', type: 'Research', size: '4.2 MB' },
+        { name: 'Operational_Briefing_W4_Feb.csv', date: '21 Feb, 09:30', type: 'Briefing', size: '142 KB' },
+        { name: 'Security_Policy_Audit_v2.pdf', date: '18 Feb, 13:00', type: 'Compliance', size: '1.2 MB' },
+        { name: 'January_Yield_Performance_Sync.pdf', date: '28 Jan, 17:45', type: 'Full Audit', size: '3.5 MB' },
+        { name: 'Zone_A_Nutrient_Uptake_Report.csv', date: '22 Jan, 10:15', type: 'Research', size: '98 KB' },
+        { name: 'Environmental_Impact_Statement.pdf', date: '15 Jan, 08:45', type: 'Compliance', size: '2.9 MB' },
+        { name: 'Operational_Briefing_W2_Jan.csv', date: '14 Jan, 09:10', type: 'Briefing', size: '115 KB' }
+      ];
+
+      function refreshReportsData() {
+        const tbody = document.getElementById('rep-tbody');
+        if (!tbody) return;
+        tbody.innerHTML = '';
+
+        // Update Stats Card
+        const totalEl = document.getElementById('rep-stat-total');
+        if (totalEl) totalEl.innerText = mockReports.length;
+
+        mockReports.forEach((rep, idx) => {
+          const isPdf = rep.name.endsWith('.pdf');
+          const iconSvg = isPdf
+            ? `<svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 1.5h5.5l3 3V12.5a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V2.5a1 1 0 0 1 1-1z" stroke="currentColor" stroke-width="1.2"/><path d="M8.5 1.5v3h3" stroke="currentColor" stroke-width="1.2"/></svg>`
+            : `<svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M1 11.5h12M2.5 11.5v-3M5.5 11.5v-6M8.5 11.5v-8M11.5 11.5v-5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>`;
+
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>
+              <div style="display:flex; align-items:center; gap:10px;">
+                <div class="rep-type-icon">${iconSvg}</div>
+                <div style="font-weight:500; color:var(--t1)">${rep.name}</div>
+              </div>
+            </td>
+            <td style="color:var(--t2); font-family:'DM Mono'">${rep.date}</td>
+            <td><span class="hist-badge" style="background:var(--cb-neutral); color:var(--t2)">${rep.type}</span></td>
+            <td>
+              <div class="rep-actions">
+                <button class="rep-action-btn" onclick="window.print()">View</button>
+                <button class="rep-action-btn" style="color:var(--c-info)">Download</button>
+              </div>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+      }
+
+      window.simulateReportGen = function () {
+        const progress = document.getElementById('rep-progress');
+        const stepText = document.getElementById('rep-progress-step');
+        progress.style.display = 'flex';
+
+        const steps = ['Correlating Soil & Weather Datasets', 'Analyzing Nutrient Delta Trends', 'Generating AI Executive Summary', 'Finalizing Research PDF'];
+        let step = 0;
+
+        const interval = setInterval(() => {
+          if (step < steps.length) {
+            stepText.innerText = steps[step];
+            step++;
+          } else {
+            clearInterval(interval);
+            progress.style.display = 'none';
+
+            // Add new report to mock list
+            const now = new Date();
+            const timeStr = `${now.getDate()} Mar, ${now.getHours()}:${now.getMinutes() < 10 ? '0' : ''}${now.getMinutes()}`;
+            mockReports.unshift({
+              name: `Custom_Field_Audit_${Math.floor(Math.random() * 9000) + 1000}.pdf`,
+              date: timeStr,
+              type: 'Custom',
+              size: '2.1 MB'
+            });
+            refreshReportsData();
+          }
+        }, 800);
+      };
+
+      // ── History Intelligence Logic ──
+      function refreshHistoryData() {
+        const tbody = document.getElementById('hist-tbody');
+        if (!tbody) return;
+        tbody.innerHTML = ''; // Clear previous
+
+        const events = [
+          { type: 'Sync', icon: '📡', label: 'Sensor Node A1', status: 'Success', origin: 'Node A1', time: 'Just now' },
+          { type: 'Water', icon: '💧', label: 'Manual Irrigation', status: '15.2mm', origin: 'System', time: '2h ago' },
+          { type: 'Soil', icon: '🌱', label: 'Periodic Assessment', status: 'Healthy', origin: 'AI Model', time: '5h ago' },
+          { type: 'Sync', icon: '📡', label: 'Sensor Node A3', status: 'Success', origin: 'Node A3', time: '8h ago' },
+          { type: 'Alert', icon: '⚠️', label: 'Low Moisture Alert', status: '18.3%', origin: 'Node A1', time: '10h ago' },
+          { type: 'Sync', icon: '📡', label: 'Sensor Node A2', status: 'Success', origin: 'Node A2', time: '14h ago' },
+          { type: 'Water', icon: '💧', label: 'Scheduled Irrigation', status: '12.0mm', origin: 'Automated', time: '1d ago' },
+          { type: 'Soil', icon: '🌱', label: 'Full Plot Scan', status: 'Complete', origin: 'Drone', time: '1d ago' },
+          { type: 'Sync', icon: '📡', label: 'Gateway Heartbeat', status: 'Optimal', origin: 'Hub', time: '2d ago' },
+          { type: 'Alert', icon: '⚠️', label: 'Battery Warning', status: '31%', origin: 'Node A2', time: '2d ago' },
+          { type: 'Water', icon: '💧', label: 'Manual Irrigation', status: '20.0mm', origin: 'System', time: '3d ago' },
+          { type: 'Sync', icon: '📡', label: 'Sensor Node A1', status: 'Success', origin: 'Node A1', time: '3d ago' },
+          { type: 'Soil', icon: '🌱', label: 'Nutrient Profiling', status: 'Archived', origin: 'Lab Sync', time: '4d ago' }
+        ];
+
+        events.forEach(ev => {
+          const tr = document.createElement('tr');
+
+          let badgeColor = '#EFF6F2;color:#276044'; // default good
+          if (ev.type === 'Alert') badgeColor = '#FBF0F0;color:#9B2C2C';
+          if (ev.type === 'Water') badgeColor = '#EEF3FB;color:#1E4A8A';
+
+          tr.innerHTML = `
+            <td style="color:var(--t2); font-family:'DM Mono'">${ev.time}</td>
+            <td><span class="hist-type-icon">${ev.icon}</span>${ev.label}</td>
+            <td><span class="hist-badge" style="background:${badgeColor}">${ev.status}</span></td>
+            <td>${ev.origin}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+      }
+
+      let forecastCharts = {};
+      function refreshRecsData() {
+        if (forecastCharts.moisture) forecastCharts.moisture.destroy();
+        if (forecastCharts.nitrogen) forecastCharts.nitrogen.destroy();
+        if (forecastCharts.thermal) forecastCharts.thermal.destroy();
+
+        const ctxM = document.getElementById('forecast-moisture');
+        const ctxN = document.getElementById('forecast-nitrogen');
+        const ctxT = document.getElementById('forecast-thermal');
+        if (!ctxM || !ctxN || !ctxT) return;
+
+        const opts = {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: { x: { display: false }, y: { display: false, min: 0 } },
+          animation: { duration: 600 },
+          elements: { line: { tension: 0.4, borderWidth: 1.5, borderColor: '#1E4A8A' }, point: { radius: 0 } }
+        };
+
+        forecastCharts.moisture = new Chart(ctxM, {
+          type: 'line',
+          data: {
+            labels: Array(14).fill(''),
+            datasets: [{
+              data: [28, 27, 26, 24, 22, 21, 20, 25, 30, 29, 28, 27, 26, 25],
+              fill: true, backgroundColor: 'rgba(30, 74, 138, 0.05)'
+            }]
+          },
+          options: opts
+        });
+
+        forecastCharts.nitrogen = new Chart(ctxN, {
+          type: 'line',
+          data: {
+            labels: Array(14).fill(''),
+            datasets: [{
+              data: [45, 44, 43, 42, 40, 38, 35, 33, 32, 31, 30, 29, 28, 27],
+              fill: true, backgroundColor: 'rgba(39, 96, 68, 0.05)', borderColor: '#276044'
+            }]
+          },
+          options: opts
+        });
+
+        forecastCharts.thermal = new Chart(ctxT, {
+          type: 'line',
+          data: {
+            labels: Array(14).fill(''),
+            datasets: [{
+              data: [22, 23, 24, 26, 28, 29, 31, 30, 28, 26, 25, 24, 23, 22],
+              fill: true, backgroundColor: 'rgba(200, 145, 78, 0.05)', borderColor: '#C8914E'
+            }]
+          },
+          options: opts
+        });
+      }
+
+      window.saveSettings = function () {
+        const btn = event.target;
+        const originalText = btn.innerText;
+        btn.innerText = 'Saving...';
+        btn.disabled = true;
+
+        setTimeout(() => {
+          btn.innerText = 'Configuration Committed';
+          btn.style.background = 'var(--c-good)';
+
+          setTimeout(() => {
+            btn.innerText = originalText;
+            btn.style.background = '';
+            btn.disabled = false;
+          }, 2000);
+        }, 1000);
+      };
+
+      // ── Weather & Water Intelligence Logic ──
+      let charts = {}; // Store Chart.js instances
+
+      async function refreshWWData(lat, lon) {
+        try {
+          // Fetch Hourly (VPD, Thermal) and Daily (Moisture, Balance)
+          const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&hourly=temperature_2m,relative_humidity_2m,soil_temperature_0cm,soil_moisture_0_to_7cm&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,et0_fao_evapotranspiration&past_days=14&timezone=auto`;
+          const resp = await fetch(url);
+          const data = await resp.json();
+
+          if (!data || !data.hourly || !data.daily) return;
+
+          // 1. Update Core Stats
+          // GDD Calculation (Simple: (Max+Min)/2 - Base)
+          const baseT = 10;
+          let totalGDD = 0;
+          data.daily.time.forEach((t, i) => {
+            const avg = (data.daily.temperature_2m_max[i] + data.daily.temperature_2m_min[i]) / 2;
+            totalGDD += Math.max(0, avg - baseT);
+          });
+          document.getElementById('ww-gdd').innerText = Math.round(totalGDD);
+
+          // Current VPD
+          const currT = data.hourly.temperature_2m[data.hourly.temperature_2m.length - 1];
+          const currRH = data.hourly.relative_humidity_2m[data.hourly.relative_humidity_2m.length - 1];
+          const vpd = calculateVPD(currT, currRH);
+          document.getElementById('ww-vpd').innerHTML = `${vpd.toFixed(2)}<span class="sh-unit"> kPa</span>`;
+
+          const vpdStatus = document.getElementById('ww-vpd-status');
+          if (vpd < 0.8) { vpdStatus.innerText = 'Low Stress (Stable)'; vpdStatus.style.color = 'var(--c-good)'; }
+          else if (vpd < 1.5) { vpdStatus.innerText = 'Moderate Demand'; vpdStatus.style.color = 'var(--c-warn)'; }
+          else { vpdStatus.innerText = 'High Transpiration Stress'; vpdStatus.style.color = 'var(--c-crit)'; }
+
+          // Field Capacity (Current moisture vs estimated max 0.4)
+          const currM = data.hourly.soil_moisture_0_to_7cm[data.hourly.soil_moisture_0_to_7cm.length - 1] * 100;
+          document.getElementById('ww-fc').innerHTML = `${Math.round(currM)}<span class="sh-unit">%</span>`;
+
+          // 14-day Rain Sum
+          const rainSum = data.daily.precipitation_sum.reduce((a, b) => a + b, 0);
+          document.getElementById('ww-rain-sum').innerHTML = `${rainSum.toFixed(1)}<span class="sh-unit"> mm</span>`;
+
+          // Irrigation Advice
+          const adviceEl = document.getElementById('ww-advice');
+          if (currM < 20) {
+            adviceEl.innerText = `Critical: Soil moisture at ${Math.round(currM)}%. Recommended irrigation: 15-20mm ASAP to restore root-zone balance.`;
+          } else if (vpd > 1.2) {
+            adviceEl.innerText = `Warning: High atmospheric demand (VPD ${vpd.toFixed(2)}kPa). Increase irrigation frequency by 20% to prevent stress.`;
+          } else {
+            adviceEl.innerText = `Optimal Conditions: Soil moisture is within the 20-30% healthy range. No irrigation required for the next 48 hours.`;
+          }
+
+          // 2. Update Charts
+          updateWWCharts(data);
+
+        } catch (e) { console.error("WW Data Fetch Failed:", e); }
+      }
+
+      function calculateVPD(T, RH) {
+        const es = 0.61078 * Math.exp(17.27 * T / (T + 237.3));
+        const ea = es * (RH / 100);
+        return es - ea;
+      }
+
+      function updateWWCharts(data) {
+        const chartColor = '#7A9DC4';
+        const gridColor = 'rgba(0,0,0,0.03)';
+        const labelColor = '#94928D';
+
+        const commonOptions = {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { grid: { display: false }, ticks: { color: labelColor, font: { size: 10 } } },
+            y: { grid: { color: gridColor }, ticks: { color: labelColor, font: { size: 10 } } }
+          }
+        };
+
+        // 1. Soil Moisture (14-day)
+        renderChart('chart-moisture', {
+          type: 'line',
+          data: {
+            labels: data.daily.time.map(t => t.split('-')[2]),
+            datasets: [{
+              label: 'Soil Moisture',
+              data: data.daily.time.map((_, i) => {
+                // Sample hourly average for each day or use index
+                return data.hourly.soil_moisture_0_to_7cm[i * 24] * 100;
+              }),
+              borderColor: '#6FA688',
+              backgroundColor: 'rgba(111, 166, 136, 0.1)',
+              fill: true,
+              tension: 0.4
+            }]
+          },
+          options: {
+            ...commonOptions,
+            plugins: {
+              ...commonOptions.plugins,
+              annotation: { // Optimal Zone shading (Mocked as Chart.js annotation requires plugin, using manual fill)
+              }
+            }
+          }
+        });
+
+        // 2. Water Balance (Rain vs ET0)
+        renderChart('chart-balance', {
+          type: 'bar',
+          data: {
+            labels: data.daily.time.map(t => t.split('-')[2]),
+            datasets: [
+              { label: 'Rain', data: data.daily.precipitation_sum, backgroundColor: '#7A9DC4', borderRadius: 2 },
+              { label: 'ET0', data: data.daily.et0_fao_evapotranspiration, type: 'line', borderColor: '#C8914E', tension: 0.4, borderDash: [4, 4] }
+            ]
+          },
+          options: commonOptions
+        });
+
+        // 3. VPD Stress
+        const hourlyLabels = data.hourly.time.slice(-24).map(t => t.split('T')[1]);
+        const hourlyVPD = data.hourly.time.slice(-24).map((_, i) => {
+          const idx = data.hourly.time.length - 24 + i;
+          return calculateVPD(data.hourly.temperature_2m[idx], data.hourly.relative_humidity_2m[idx]);
+        });
+        renderChart('chart-vpd', {
+          type: 'line',
+          data: {
+            labels: hourlyLabels,
+            datasets: [{ data: hourlyVPD, borderColor: '#C8918E', fill: false, tension: 0.4 }]
+          },
+          options: commonOptions
+        });
+
+        // 4. Thermal Profile
+        const hourlyAir = data.hourly.temperature_2m.slice(-24);
+        const hourlySoil = data.hourly.soil_temperature_0cm.slice(-24);
+        renderChart('chart-thermal', {
+          type: 'line',
+          data: {
+            labels: hourlyLabels,
+            datasets: [
+              { label: 'Air Temp', data: hourlyAir, borderColor: '#C8914E', tension: 0.4 },
+              { label: 'Soil Temp', data: hourlySoil, borderColor: '#6FA688', tension: 0.4 }
+            ]
+          },
+          options: commonOptions
+        });
+      }
+
+      function renderChart(id, config) {
+        if (charts[id]) charts[id].destroy();
+        const ctx = document.getElementById(id).getContext('2d');
+        charts[id] = new Chart(ctx, config);
+      }
+    });
+
+    function exportCSV() {
+      const cards = document.querySelectorAll('.sh-card');
+      let csv = 'Parameter,Value,Status\n';
+      cards.forEach(card => {
+        const nameNode = card.querySelector('.sh-name');
+        const valNode = card.querySelector('.sh-val');
+        if (!nameNode || !valNode) return;
+
+        const name = nameNode.innerText.trim().replace(/,/g, '');
+        const value = valNode.innerText.trim().replace(/,/g, '');
+        let status = 'Normal';
+        if (card.classList.contains('crit')) status = 'Critical';
+        if (card.classList.contains('warn')) status = 'Warning';
+        if (card.classList.contains('good')) status = 'Good';
+
+        csv += `${name},${value},${status}\n`;
+      });
+
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      link.setAttribute('href', URL.createObjectURL(blob));
+      link.setAttribute('download', 'FarmIntel_Soil_Report.csv');
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    function exportPDF() {
+      window.print();
+    }
+  </script>
+</body>
+
+</html>
