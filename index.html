@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=1440">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>FarmIntel — Desktop 1440px</title>
   <link
     href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap"
@@ -256,8 +256,14 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 0 28px;
+      padding: 0 20px;
       position: relative;
+    }
+
+    .tb-left {
+      min-width: 220px;
+      flex-shrink: 0;
+      z-index: 2;
     }
 
     .tb-title {
@@ -275,7 +281,11 @@
     .tb-right {
       display: flex;
       align-items: center;
-      gap: 14px
+      gap: 12px;
+      min-width: 230px;
+      justify-content: flex-end;
+      flex-shrink: 0;
+      z-index: 2;
     }
 
     .tb-sync {
@@ -288,6 +298,8 @@
       display: flex;
       align-items: center;
       gap: 5px;
+      white-space: nowrap;
+      flex-shrink: 0;
     }
 
     .sync-dot {
@@ -355,17 +367,21 @@
     /* ── Topbar Filters ── */
     .tb-filters {
       position: absolute;
-      left: 50%;
-      transform: translateX(-50%);
+      left: 255px;
+      right: 250px;
+      transform: none;
       display: flex;
       align-items: center;
-      gap: 20px;
+      justify-content: center;
+      gap: 10px;
+      overflow: hidden;
     }
 
     .filter-item {
       display: flex;
       flex-direction: column;
       gap: 3px;
+      min-width: 0;
     }
 
     .filter-label {
@@ -386,8 +402,47 @@
       border-radius: 3px;
       padding: 3px 8px;
       outline: none;
-      min-width: 85px;
+      min-width: 0;
       transition: border-color 0.15s;
+    }
+
+    #lat-input,
+    #lon-input {
+      width: 108px;
+    }
+
+    .tb-filters .filter-item:nth-child(3) .filter-control {
+      width: 84px;
+    }
+
+    .tb-filters .filter-item:nth-child(4) .filter-control {
+      width: 102px;
+    }
+
+    @media (max-width: 1360px) {
+      .tb-filters {
+        left: 245px;
+        right: 220px;
+        gap: 8px;
+      }
+
+      #lat-input,
+      #lon-input {
+        width: 96px;
+      }
+
+      .tb-filters .filter-item:nth-child(3) .filter-control {
+        width: 78px;
+      }
+
+      .tb-filters .filter-item:nth-child(4) .filter-control {
+        width: 96px;
+      }
+
+      .tb-sync {
+        font-size: 10.5px;
+        padding: 4px 8px;
+      }
     }
 
     .filter-control:hover {
@@ -467,11 +522,23 @@
     /* ── Content scroll area ── */
     .content {
       flex: 1;
-      overflow: hidden;
+      overflow-y: auto;
+      overflow-x: hidden;
       padding: 16px 24px;
       display: flex;
       flex-direction: column;
       gap: 12px;
+    }
+
+    #view-snapshot {
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding-right: 2px;
+    }
+
+    #view-snapshot .dashboard-grid {
+      flex: 0 0 auto;
+      min-height: 620px;
     }
 
 
@@ -1856,6 +1923,238 @@
       font-weight: 500;
       letter-spacing: 0.02em;
     }
+
+    .insight-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 12px;
+    }
+
+    .insight-card {
+      background: var(--surface);
+      border: 1px solid var(--b1);
+      border-radius: var(--r2);
+      padding: 14px 16px;
+      animation: rise 0.4s ease;
+    }
+
+    .insight-title {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.11em;
+      color: var(--t2);
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+
+    .state-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .state-row {
+      display: grid;
+      grid-template-columns: 100px 1fr;
+      gap: 10px;
+      font-size: 11px;
+      line-height: 1.45;
+    }
+
+    .state-label {
+      color: var(--t3);
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      font-size: 9.5px;
+      font-weight: 600;
+    }
+
+    .formula-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .chip {
+      font-size: 10px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--b1);
+      background: var(--surface2);
+      color: var(--t2);
+    }
+
+    .trace-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11px;
+    }
+
+    .trace-table th,
+    .trace-table td {
+      border-bottom: 1px solid var(--b1);
+      padding: 8px 6px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    .trace-table th {
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.09em;
+      color: var(--t3);
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .legend-item {
+      font-size: 10px;
+      color: var(--t2);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      background: var(--surface2);
+      border: 1px solid var(--b1);
+      border-radius: 3px;
+      padding: 3px 6px;
+    }
+
+    .swatch {
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+    }
+
+    .eqn {
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      background: var(--surface2);
+      border: 1px dashed var(--b2);
+      border-radius: 4px;
+      padding: 8px;
+      color: var(--t2);
+      line-height: 1.6;
+    }
+
+    .causal-chain {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+      font-size: 11px;
+      color: var(--t2);
+    }
+
+    .causal-node {
+      border: 1px solid var(--b1);
+      background: var(--surface2);
+      padding: 5px 8px;
+      border-radius: 4px;
+    }
+
+    .causal-arrow {
+      color: var(--t3);
+      font-size: 12px;
+    }
+
+    .scenario-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .scenario-box {
+      border: 1px solid var(--b1);
+      border-radius: var(--r);
+      background: var(--bg);
+      padding: 10px;
+    }
+
+    .scenario-kpi {
+      font-size: 20px;
+      font-weight: 500;
+      color: var(--t1);
+    }
+
+    .constraints {
+      display: grid;
+      gap: 10px;
+    }
+
+    .constraint-row {
+      display: grid;
+      grid-template-columns: 125px 1fr 48px;
+      align-items: center;
+      gap: 8px;
+      font-size: 11px;
+      color: var(--t2);
+    }
+
+    .confidence {
+      font-size: 10px;
+      color: var(--t3);
+      margin-top: 4px;
+    }
+
+    .zone-pill {
+      font-size: 10px;
+      padding: 3px 7px;
+      border-radius: 999px;
+      border: 1px solid var(--b2);
+      color: var(--t2);
+      background: rgba(255, 255, 255, 0.9);
+    }
+
+    @keyframes rise {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @media (max-width: 1100px) {
+      .sidebar {
+        width: 70px;
+      }
+
+      .sb-item {
+        font-size: 0;
+        justify-content: center;
+      }
+
+      .sb-brand .tagline,
+      .sb-section,
+      .farm-card {
+        display: none;
+      }
+
+      .cards {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .dashboard-grid,
+      .insight-grid,
+      .scenario-grid,
+      .rec-grid,
+      .rep-content-split,
+      .bottom-subgrid {
+        grid-template-columns: 1fr;
+      }
+
+      .tb-filters {
+        display: none;
+      }
+    }
   </style>
 </head>
 
@@ -1999,7 +2298,7 @@
 
         <!-- View: Snapshot -->
         <div id="view-snapshot" class="view-content active"
-          style="display: flex; flex-direction: column; gap: 12px; height: 100%;">
+          style="display: flex; flex-direction: column; gap: 12px;">
           <!-- Metric cards -->
           <div class="cards">
             <div class="mcard good">
@@ -2009,16 +2308,16 @@
                 <span class="badge badge-good">Optimal</span>
                 <span class="mc-trend">▲ 2 pts from last scan</span>
               </div>
-              <div class="mc-conf">Multi-factor analysis</div>
+              <div class="mc-conf">Formula: 0.35 Nutrients + 0.25 Moisture + 0.20 Structure + 0.20 Weather</div>
             </div>
             <div class="mcard warn">
               <div class="mc-label">NPK Status</div>
-              <div class="mc-val">Fair</div>
+              <div class="mc-val">72<span class="unit">/100</span></div>
               <div class="mc-footer">
                 <span class="badge badge-warn">Warning</span>
                 <span class="mc-trend">Nitrogen is critically low</span>
               </div>
-              <div class="mc-conf">Model fusion estimate</div>
+              <div class="mc-conf">Sensor + lab fusion · Confidence 88%</div>
             </div>
             <div class="mcard crit">
               <div class="mc-label">Soil Moisture</div>
@@ -2036,7 +2335,67 @@
                 <span class="badge badge-info">Safe</span>
                 <span class="mc-trend">No extreme events</span>
               </div>
-              <div class="mc-conf">Localized forecast</div>
+              <div class="mc-conf">7-day forecast model · Uncertainty ±9%</div>
+            </div>
+          </div>
+
+          <div class="insight-grid">
+            <div class="insight-card">
+              <div class="insight-title">Farm State Model</div>
+              <div class="state-list">
+                <div class="state-row"><div class="state-label">What</div><div>Root-zone drying and mild nitrogen limitation are active in Zone A north-east.</div></div>
+                <div class="state-row"><div class="state-label">Why</div><div>Low rainfall window + ET0 above 4.6 mm/day + nitrate uptake spike at vegetative stage.</div></div>
+                <div class="state-row"><div class="state-label">Next</div><div>Moisture likely to drop to 16.9% in 36 hours and stress risk rises to 0.62 probability.</div></div>
+                <div class="state-row"><div class="state-label">Do</div><div>Irrigate 14 mm tonight and apply 5 kg/ha urea within 48 hours for projected recovery.</div></div>
+              </div>
+              <div class="formula-row">
+                <span class="chip">Measured: Moisture, pH, EC</span>
+                <span class="chip">Inferred: N mineralization</span>
+                <span class="chip">Predicted: 48h stress risk</span>
+              </div>
+            </div>
+            <div class="insight-card">
+              <div class="insight-title">Causal Chain</div>
+              <div class="causal-chain" style="margin-bottom:10px;">
+                <span class="causal-node">Rainfall deficit: -12 mm</span>
+                <span class="causal-arrow">→</span>
+                <span class="causal-node">Water balance: -4.3 mm/day</span>
+                <span class="causal-arrow">→</span>
+                <span class="causal-node">Moisture: 18.3%</span>
+                <span class="causal-arrow">→</span>
+                <span class="causal-node">N uptake stress</span>
+              </div>
+              <table class="trace-table">
+                <thead>
+                  <tr>
+                    <th>Signal</th>
+                    <th>Contribution</th>
+                    <th>Confidence</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>ET0 spike</td>
+                    <td>34%</td>
+                    <td>0.91</td>
+                  </tr>
+                  <tr>
+                    <td>Rainfall deficit</td>
+                    <td>29%</td>
+                    <td>0.88</td>
+                  </tr>
+                  <tr>
+                    <td>Nitrate decline</td>
+                    <td>22%</td>
+                    <td>0.76</td>
+                  </tr>
+                  <tr>
+                    <td>Canopy temperature</td>
+                    <td>15%</td>
+                    <td>0.69</td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
           </div>
 
@@ -2046,7 +2405,7 @@
             <!-- Left Column: Map & Health/Weather -->
             <div class="col-left">
               <!-- Field Map -->
-              <div class="panel-full" style="flex: 1.4; position:relative; min-height: 0;">
+              <div class="panel-full" style="flex: 1.4; position:relative; min-height: 320px;">
                 <div class="map-overlay">
                   <div class="map-info">
                     <div class="panel-title">Field Geospatial View</div>
@@ -2056,6 +2415,12 @@
                     <button class="map-btn active" id="btn-sat">Satellite</button>
                     <button class="map-btn" id="btn-agri">Sentinel-2</button>
                     <button class="map-btn" id="btn-ndvi">Field Health (NDVI)</button>
+                  </div>
+                  <div class="legend">
+                    <span class="legend-item"><span class="swatch" style="background:#6FA688"></span>Healthy Zone</span>
+                    <span class="legend-item"><span class="swatch" style="background:#C8914E"></span>Water Stress</span>
+                    <span class="legend-item"><span class="swatch" style="background:#C8918E"></span>N Deficit</span>
+                    <span class="legend-item">Influence radius: 120 m</span>
                   </div>
                 </div>
                 <div id="map" style="width:100%; height:100%; background:var(--bg);"></div>
@@ -2253,6 +2618,45 @@
               </div>
             </div>
 
+            <div class="insight-card" style="margin-bottom:16px;">
+              <div class="insight-title">Scientific Traceability Layer</div>
+              <table class="trace-table">
+                <thead>
+                  <tr>
+                    <th>Parameter</th>
+                    <th>Observed</th>
+                    <th>Crop-stage optimal range</th>
+                    <th>Origin</th>
+                    <th>Confidence</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Nitrogen</td>
+                    <td>185 kg/ha</td>
+                    <td>220-260 kg/ha (Rice tillering)</td>
+                    <td>Inferred (sensor fusion + model v2.8)</td>
+                    <td>0.81</td>
+                  </tr>
+                  <tr>
+                    <td>Soil Moisture</td>
+                    <td>18.3%</td>
+                    <td>24-31% (Clay loam)</td>
+                    <td>Measured (Node A1 capacitance probe)</td>
+                    <td>0.95</td>
+                  </tr>
+                  <tr>
+                    <td>Organic Carbon</td>
+                    <td>0.52%</td>
+                    <td>0.75-1.10% (target maintenance)</td>
+                    <td>Lab import + calibrated estimate</td>
+                    <td>0.74</td>
+                  </tr>
+                </tbody>
+              </table>
+              <div class="confidence">Calibration trace: Sensor firmware A1.4, soil model v2.8, last calibration Mar 27, drift 1.9%.</div>
+            </div>
+
             <!-- Nutrient Row (Primary + Secondary Side-by-Side) -->
             <div style="display: flex; gap: 24px; margin-bottom: 8px;">
               <div style="flex: 1;">
@@ -2411,6 +2815,37 @@
               </div>
             </div>
 
+            <div class="insight-grid" style="margin-bottom:14px;">
+              <div class="insight-card">
+                <div class="insight-title">Soil-Water Balance Model</div>
+                <div class="eqn">
+                  DeltaSM = Rain + Irrigation - ET0 - Runoff - DeepDrain
+                  <br>
+                  Current day: 2.1 + 0 - 4.6 - 0.7 - 1.1 = -4.3 mm
+                  <br>
+                  Irrigation deficit (48h): 13.8 mm (95% CI: 11.9-15.4)
+                </div>
+                <div class="confidence">ET0 source: FAO56 Penman-Monteith from hourly weather feed.</div>
+              </div>
+              <div class="insight-card">
+                <div class="insight-title">Coupled Soil-Weather Causality</div>
+                <div class="causal-chain">
+                  <span class="causal-node">High VPD</span>
+                  <span class="causal-arrow">→</span>
+                  <span class="causal-node">Higher ET0</span>
+                  <span class="causal-arrow">→</span>
+                  <span class="causal-node">Moisture drop</span>
+                  <span class="causal-arrow">→</span>
+                  <span class="causal-node">Irrigation need</span>
+                </div>
+                <div class="formula-row" style="margin-top:10px;">
+                  <span class="chip">ET0 now: <span id="ww-et0">--</span> mm/day</span>
+                  <span class="chip">Deficit risk: 0.62</span>
+                  <span class="chip">Recommendation confidence: 87%</span>
+                </div>
+              </div>
+            </div>
+
             <!-- Researcher Top Stats -->
             <div class="ww-grid">
               <div class="ww-stat-card">
@@ -2522,6 +2957,30 @@
               </div>
             </div>
 
+            <div class="insight-grid" style="margin-bottom:12px;">
+              <div class="insight-card">
+                <div class="insight-title">Analytical History</div>
+                <div style="height:140px;"><canvas id="hist-trend-chart"></canvas></div>
+                <div class="confidence">Trend: Moisture recovers within 18-22h after irrigation events.</div>
+              </div>
+              <div class="insight-card">
+                <div class="insight-title">Causal Recovery Chain</div>
+                <div class="causal-chain">
+                  <span class="causal-node">Low Moisture Alert</span>
+                  <span class="causal-arrow">→</span>
+                  <span class="causal-node">Irrigation Triggered</span>
+                  <span class="causal-arrow">→</span>
+                  <span class="causal-node">Moisture +6.8%</span>
+                  <span class="causal-arrow">→</span>
+                  <span class="causal-node">Stress Risk -0.24</span>
+                </div>
+                <div class="formula-row" style="margin-top:10px;">
+                  <span class="chip">Mean recovery lag: 19h</span>
+                  <span class="chip">Events analyzed: 42</span>
+                </div>
+              </div>
+            </div>
+
             <!-- Event Timeline Table -->
             <div class="hist-table-wrap">
               <table class="hist-table">
@@ -2587,6 +3046,18 @@
               </div>
             </div>
 
+            <div class="insight-card" style="margin-bottom:4px;">
+              <div class="insight-title">Report Data Lineage</div>
+              <div class="causal-chain" style="margin-bottom:8px;">
+                <span class="causal-node">Input datasets: Soil sensors, weather API, irrigation logs</span>
+                <span class="causal-arrow">→</span>
+                <span class="causal-node">Feature pipeline v1.9</span>
+                <span class="causal-arrow">→</span>
+                <span class="causal-node">Advisory model v2.8</span>
+              </div>
+              <div class="confidence">Every archived report now includes source set, calibration date, and model version for audit credibility.</div>
+            </div>
+
             <div class="rep-content-split">
               <!-- Grid Left: Generator -->
               <div class="rep-generator">
@@ -2603,10 +3074,10 @@
                 <div class="rep-field-group">
                   <div class="rep-field-label">Report Type</div>
                   <select class="rep-control">
-                    <option>Decision Support Audit (Full)</option>
-                    <option>Research Trial Comparison</option>
-                    <option>Regulatory (GAP) Compliance</option>
-                    <option>Weekly Operational Briefing</option>
+                    <option>Agronomic Audit</option>
+                    <option>Irrigation Efficiency</option>
+                    <option>Nutrient Balance</option>
+                    <option>Decision Support (Full)</option>
                   </select>
                 </div>
 
@@ -2651,7 +3122,8 @@
                         <th>Report Name</th>
                         <th>Generated</th>
                         <th>Type</th>
-                        <th>Downloads</th>
+                        <th>Model</th>
+                        <th>Lineage</th>
                       </tr>
                     </thead>
                     <tbody id="rep-tbody">
@@ -2694,9 +3166,9 @@
                 </svg>
               </div>
               <div class="rep-ai-msg">
-                <strong>Priority Action:</strong> Nitrogen levels in <strong>Zone A</strong> are dropping below optimal
-                threshold (22%). Schedule Urea application (15kg/ha) within the next 48 hours to maintain yield
-                potential.
+                <strong>Priority Action:</strong> Apply <strong>Urea 5 kg/ha</strong> in Zone A within 48h because
+                nitrogen deficit probability is 0.78, expected yield protection is 6.1% (confidence 84%), and water
+                availability supports fertigation tonight.
               </div>
             </div>
 
@@ -2713,7 +3185,9 @@
                       <tr>
                         <th>Nutrient</th>
                         <th>Dosage</th>
+                        <th>Reason (Top Feature)</th>
                         <th>Impact</th>
+                        <th>Confidence</th>
                         <th>Priority</th>
                         <th>Window</th>
                       </tr>
@@ -2721,29 +3195,37 @@
                     <tbody>
                       <tr>
                         <td style="font-weight:500; color:var(--t1)">Urea (Nitrogen)</td>
-                        <td>15 kg/ha</td>
+                        <td>5 kg/ha</td>
+                        <td>N index 22% below stage target</td>
                         <td><span style="color:var(--c-good)">+8% Yld</span></td>
+                        <td>0.84</td>
                         <td><span class="hist-badge" style="background:#FBF0F0;color:#9B2C2C">High</span></td>
                         <td>Next 48h</td>
                       </tr>
                       <tr>
                         <td style="font-weight:500; color:var(--t1)">Potash (K)</td>
                         <td>8 kg/ha</td>
+                        <td>K trend slope negative for 9 days</td>
                         <td><span style="color:var(--c-good)">+3% Yld</span></td>
+                        <td>0.72</td>
                         <td><span class="hist-badge" style="background:#FEF9EE;color:#94662C">Med</span></td>
                         <td>5-7 Days</td>
                       </tr>
                       <tr>
                         <td style="font-weight:500; color:var(--t1)">Zinc Sulfate</td>
                         <td>2 kg/ha</td>
+                        <td>Micronutrient stress signal in NE zone</td>
                         <td><span style="color:var(--c-good)">+1% Yld</span></td>
+                        <td>0.63</td>
                         <td><span class="hist-badge" style="background:#EFF6F2;color:#276044">Low</span></td>
                         <td>10 Days</td>
                       </tr>
                       <tr>
                         <td style="font-weight:500; color:var(--t1)">Magnesium Sulfate</td>
                         <td>5 kg/ha</td>
+                        <td>Leaf chlorosis risk model</td>
                         <td><span style="color:var(--c-good)">+2.5% Yld</span></td>
+                        <td>0.66</td>
                         <td><span class="hist-badge" style="background:#FEF9EE;color:#94662C">Med</span></td>
                         <td>14 Days</td>
                       </tr>
@@ -2831,9 +3313,28 @@
               <div class="rec-card">
                 <div class="rec-card-header">
                   <div class="rec-card-title">14-Day Soil & Yield Forecast</div>
-                  <div class="sh-subtitle" style="font-size:10px;">Long-range Predictive Modeling</div>
+                  <div class="sh-subtitle" style="font-size:10px;">What-if Simulator + Constraints</div>
                 </div>
                 <div class="rec-card-body">
+                  <div class="scenario-grid" style="margin-bottom:12px;">
+                    <div class="scenario-box">
+                      <div class="sh-subtitle" style="font-size:9px; font-weight:600;">If irrigate now (14 mm)</div>
+                      <div class="scenario-kpi" style="color:var(--c-good);">+5.8%</div>
+                      <div class="confidence">Yield response confidence: 0.86</div>
+                    </div>
+                    <div class="scenario-box">
+                      <div class="sh-subtitle" style="font-size:9px; font-weight:600;">If delay 3 days</div>
+                      <div class="scenario-kpi" style="color:var(--c-crit);">-3.1%</div>
+                      <div class="confidence">Stress risk rises to 0.71</div>
+                    </div>
+                  </div>
+
+                  <div class="constraints" style="margin-bottom:10px;">
+                    <div class="constraint-row"><span>Water cap</span><input type="range" min="20" max="70" value="46"><span>46 mm</span></div>
+                    <div class="constraint-row"><span>Budget cap</span><input type="range" min="1000" max="6000" value="3400"><span>3400</span></div>
+                    <div class="constraint-row"><span>Crop stage</span><input type="range" min="1" max="4" value="2"><span>V2</span></div>
+                  </div>
+
                   <div class="rec-forecast-grid">
                     <div class="rec-forecast-mini">
                       <div class="sh-subtitle" style="font-size:8.5px; font-weight:600;">Moisture Index</div>
@@ -2979,6 +3480,9 @@
                 <div style="font-size:13px; font-weight:600; color:var(--t1)">Active Priority Alerts</div>
               </div>
               <div class="st-group" style="padding:0;">
+                <div style="padding:10px 20px; background:var(--surface2); border-bottom:1px solid var(--b1); font-size:11px; color:var(--t2);">
+                  Root Cause Group: <strong>Hydric Stress Cluster</strong> · 3 alerts · Combined impact score 8.4/10
+                </div>
                 <div
                   style="border-bottom:1px solid var(--b1); padding:16px 20px; display:flex; gap:16px; align-items:flex-start;">
                   <div style="width:8px; height:8px; border-radius:50%; background:var(--c-crit); margin-top:4px;">
@@ -2992,6 +3496,7 @@
                       Soil Moisture at <strong>Sensor Node A1</strong> dropped below the 18% floor (Current: 16.4%).
                       Automated irrigation standby engaged.
                     </div>
+                    <div class="confidence">Probability: 0.91 · Impact score: 9.2/10</div>
                   </div>
                 </div>
 
@@ -3009,6 +3514,7 @@
                       Vapor Pressure Deficit exceeded 1.5 kPa (Current: 1.82).
                       High transpiration stress detected in maize canopy.
                     </div>
+                    <div class="confidence">Probability: 0.84 · Impact score: 7.8/10</div>
                   </div>
                 </div>
 
@@ -3024,6 +3530,7 @@
                       Scheduled Nitrogen (Urea) injection in <strong>Zone A</strong> successfully finalized.
                       12.4k Liters delivered.
                     </div>
+                    <div class="confidence">Probability: 0.97 · Impact score: 4.2/10</div>
                   </div>
                 </div>
               </div>
@@ -3101,6 +3608,39 @@
       // Add a draggable marker
       const marker = L.marker([lat, lon], { draggable: true }).addTo(map);
 
+      // Geospatial analytics overlays: management zones + influence radius.
+      const zoneA = L.polygon([
+        [lat + 0.0012, lon - 0.0014],
+        [lat + 0.0013, lon + 0.0002],
+        [lat + 0.0002, lon + 0.0014],
+        [lat - 0.0011, lon + 0.0007],
+        [lat - 0.001, lon - 0.0012]
+      ], {
+        color: '#6FA688',
+        weight: 1,
+        fillOpacity: 0.12
+      }).addTo(map).bindTooltip('Zone A: Stable');
+
+      const zoneB = L.polygon([
+        [lat + 0.0002, lon + 0.0014],
+        [lat + 0.0013, lon + 0.0002],
+        [lat + 0.002, lon + 0.001],
+        [lat + 0.0011, lon + 0.0021],
+        [lat - 0.0003, lon + 0.002]
+      ], {
+        color: '#C8918E',
+        weight: 1,
+        fillOpacity: 0.14
+      }).addTo(map).bindTooltip('Zone B: N Deficit');
+
+      const influenceRadius = L.circle([lat, lon], {
+        radius: 120,
+        color: '#1E4A8A',
+        dashArray: '4,4',
+        fillOpacity: 0.02,
+        weight: 1
+      }).addTo(map);
+
       // Auto-locate user on load
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition((pos) => {
@@ -3124,6 +3664,7 @@
 
       function updateMap(newLat, newLon) {
         marker.setLatLng([newLat, newLon]);
+        influenceRadius.setLatLng([newLat, newLon]);
         map.setView([newLat, newLon]);
         refreshWeatherData(newLat, newLon); // Fetch real weather for this spot
         resetSyncTimer(); // Update sync text
@@ -3275,18 +3816,11 @@
 
       // ── Reports Intelligence Logic ──
       let mockReports = [
-        { name: 'March_Soil_Health_Audit.pdf', date: '22 Mar, 10:30', type: 'Full Audit', size: '2.4 MB' },
-        { name: 'Weekly_Operational_Briefing.csv', date: '19 Mar, 08:15', type: 'Briefing', size: '128 KB' },
-        { name: 'GAP_Compliance_Cert_Q1.pdf', date: '15 Mar, 14:45', type: 'Compliance', size: '1.8 MB' },
-        { name: 'Nitrogen_Trial_Comparison_Z-A.pdf', date: '10 Mar, 09:00', type: 'Research', size: '3.1 MB' },
-        { name: 'February_Water_Balance_Review.pdf', date: '28 Feb, 16:20', type: 'Full Audit', size: '2.1 MB' },
-        { name: 'Zone_B_Moisture_Stress_Trial.pdf', date: '22 Feb, 11:10', type: 'Research', size: '4.2 MB' },
-        { name: 'Operational_Briefing_W4_Feb.csv', date: '21 Feb, 09:30', type: 'Briefing', size: '142 KB' },
-        { name: 'Security_Policy_Audit_v2.pdf', date: '18 Feb, 13:00', type: 'Compliance', size: '1.2 MB' },
-        { name: 'January_Yield_Performance_Sync.pdf', date: '28 Jan, 17:45', type: 'Full Audit', size: '3.5 MB' },
-        { name: 'Zone_A_Nutrient_Uptake_Report.csv', date: '22 Jan, 10:15', type: 'Research', size: '98 KB' },
-        { name: 'Environmental_Impact_Statement.pdf', date: '15 Jan, 08:45', type: 'Compliance', size: '2.9 MB' },
-        { name: 'Operational_Briefing_W2_Jan.csv', date: '14 Jan, 09:10', type: 'Briefing', size: '115 KB' }
+        { name: 'March_Agronomic_Audit.pdf', date: '22 Mar, 10:30', type: 'Agronomic Audit', model: 'v2.8', lineage: 'S1+W1+IRR' },
+        { name: 'Weekly_Irrigation_Efficiency.csv', date: '19 Mar, 08:15', type: 'Irrigation Efficiency', model: 'v2.8', lineage: 'W1+IRR' },
+        { name: 'Nutrient_Balance_Q1.pdf', date: '15 Mar, 14:45', type: 'Nutrient Balance', model: 'v2.7', lineage: 'S1+LAB' },
+        { name: 'Decision_Support_Full_ZA.pdf', date: '10 Mar, 09:00', type: 'Decision Support', model: 'v2.8', lineage: 'S1+W1+M1' },
+        { name: 'February_Irrigation_Audit.pdf', date: '28 Feb, 16:20', type: 'Irrigation Efficiency', model: 'v2.7', lineage: 'W1+IRR' }
       ];
 
       function refreshReportsData() {
@@ -3314,12 +3848,8 @@
             </td>
             <td style="color:var(--t2); font-family:'DM Mono'">${rep.date}</td>
             <td><span class="hist-badge" style="background:var(--cb-neutral); color:var(--t2)">${rep.type}</span></td>
-            <td>
-              <div class="rep-actions">
-                <button class="rep-action-btn" onclick="window.print()">View</button>
-                <button class="rep-action-btn" style="color:var(--c-info)">Download</button>
-              </div>
-            </td>
+            <td style="font-family:'DM Mono'; color:var(--t2)">${rep.model}</td>
+            <td style="font-family:'DM Mono'; color:var(--t2)">${rep.lineage}</td>
           `;
           tbody.appendChild(tr);
         });
@@ -3347,8 +3877,9 @@
             mockReports.unshift({
               name: `Custom_Field_Audit_${Math.floor(Math.random() * 9000) + 1000}.pdf`,
               date: timeStr,
-              type: 'Custom',
-              size: '2.1 MB'
+              type: 'Decision Support',
+              model: 'v2.8',
+              lineage: 'S1+W1+M1'
             });
             refreshReportsData();
           }
@@ -3391,6 +3922,35 @@
             <td>${ev.origin}</td>
           `;
           tbody.appendChild(tr);
+        });
+
+        renderHistoryTrendChart();
+      }
+
+      function renderHistoryTrendChart() {
+        const id = 'hist-trend-chart';
+        if (!document.getElementById(id)) return;
+        if (charts[id]) charts[id].destroy();
+        const ctx = document.getElementById(id).getContext('2d');
+        charts[id] = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: ['D-10', 'D-9', 'D-8', 'D-7', 'D-6', 'D-5', 'D-4', 'D-3', 'D-2', 'D-1'],
+            datasets: [
+              { label: 'Moisture (%)', data: [25, 24, 22, 19, 18, 24, 26, 23, 21, 18], borderColor: '#1E4A8A', tension: 0.35, yAxisID: 'y' },
+              { label: 'Irrigation (mm)', data: [0, 0, 0, 14, 0, 8, 0, 0, 10, 0], borderColor: '#6FA688', tension: 0.35, yAxisID: 'y1' }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: true, labels: { boxWidth: 8, font: { size: 10 } } } },
+            scales: {
+              y: { title: { display: true, text: 'Moisture %' }, min: 14, max: 30, ticks: { font: { size: 9 } } },
+              y1: { position: 'right', title: { display: true, text: 'Irrigation mm' }, min: 0, max: 16, grid: { drawOnChartArea: false }, ticks: { font: { size: 9 } } },
+              x: { ticks: { font: { size: 9 } } }
+            }
+          }
         });
       }
 
@@ -3509,6 +4069,10 @@
           const rainSum = data.daily.precipitation_sum.reduce((a, b) => a + b, 0);
           document.getElementById('ww-rain-sum').innerHTML = `${rainSum.toFixed(1)}<span class="sh-unit"> mm</span>`;
 
+          const et0Now = data.daily.et0_fao_evapotranspiration[data.daily.et0_fao_evapotranspiration.length - 1] || 0;
+          const etEl = document.getElementById('ww-et0');
+          if (etEl) etEl.innerText = et0Now.toFixed(1);
+
           // Irrigation Advice
           const adviceEl = document.getElementById('ww-advice');
           if (currM < 20) {
@@ -3539,10 +4103,10 @@
         const commonOptions = {
           responsive: true,
           maintainAspectRatio: false,
-          plugins: { legend: { display: false } },
+          plugins: { legend: { display: true, labels: { boxWidth: 8, font: { size: 10 } } } },
           scales: {
-            x: { grid: { display: false }, ticks: { color: labelColor, font: { size: 10 } } },
-            y: { grid: { color: gridColor }, ticks: { color: labelColor, font: { size: 10 } } }
+            x: { grid: { display: false }, ticks: { color: labelColor, font: { size: 10 } }, title: { display: true, text: 'Date' } },
+            y: { grid: { color: gridColor }, ticks: { color: labelColor, font: { size: 10 } }, title: { display: true, text: 'Value' } }
           }
         };
 
@@ -3565,10 +4129,9 @@
           },
           options: {
             ...commonOptions,
-            plugins: {
-              ...commonOptions.plugins,
-              annotation: { // Optimal Zone shading (Mocked as Chart.js annotation requires plugin, using manual fill)
-              }
+            scales: {
+              ...commonOptions.scales,
+              y: { ...commonOptions.scales.y, title: { display: true, text: 'Soil moisture (%)' } }
             }
           }
         });
@@ -3583,7 +4146,13 @@
               { label: 'ET0', data: data.daily.et0_fao_evapotranspiration, type: 'line', borderColor: '#C8914E', tension: 0.4, borderDash: [4, 4] }
             ]
           },
-          options: commonOptions
+          options: {
+            ...commonOptions,
+            scales: {
+              ...commonOptions.scales,
+              y: { ...commonOptions.scales.y, title: { display: true, text: 'mm/day' } }
+            }
+          }
         });
 
         // 3. VPD Stress
@@ -3598,7 +4167,13 @@
             labels: hourlyLabels,
             datasets: [{ data: hourlyVPD, borderColor: '#C8918E', fill: false, tension: 0.4 }]
           },
-          options: commonOptions
+          options: {
+            ...commonOptions,
+            scales: {
+              ...commonOptions.scales,
+              y: { ...commonOptions.scales.y, title: { display: true, text: 'VPD (kPa)' } }
+            }
+          }
         });
 
         // 4. Thermal Profile
@@ -3613,7 +4188,13 @@
               { label: 'Soil Temp', data: hourlySoil, borderColor: '#6FA688', tension: 0.4 }
             ]
           },
-          options: commonOptions
+          options: {
+            ...commonOptions,
+            scales: {
+              ...commonOptions.scales,
+              y: { ...commonOptions.scales.y, title: { display: true, text: 'Temperature (C)' } }
+            }
+          }
         });
       }
 
